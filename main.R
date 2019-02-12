@@ -32,16 +32,28 @@ g = g + sharedTheme
 
 print(g)
 
-weekStats <- function(data, x, y){
-  # do smth
+weekStats <- function(data, timestamp, y){
+  setwd("F:\\Users\\Janis\\VIKA\\plots\\")
+  nor = min(timestamp)
+  for (week in timestamp){
+    # Summarize gridToBattery by hour, day and week:
+    data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
+      summarize(gridToBattery=sum(gridToBattery))  %>%
+      ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme
+      # coord_cartesian(xlim = c(nor, nor + days(2)))
+    ggsave(paste('week', toString(week), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
+    nor =  nor + days(2)
+  }
   # return(object)
 }
+
+weekStats(datKWH, timestamp, gridToBattery)
 
 nor = min(timestamp)
 # Summarize gridToBattery by hour, day and week:
 datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
   summarize(gridToBattery=sum(gridToBattery))  %>%
-  ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
+  ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme +
   coord_cartesian(xlim = c(nor, nor + days(2)))
 ggsave("r1.pdf", width = 29.7, height = 21.0, units = "cm")
 
