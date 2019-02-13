@@ -30,32 +30,30 @@ g = g + sharedTheme
 # scale_*_datetime for datetimes (class POSIXct),
 # g = g + scale_x_datetime(breaks='1 week', labels = "%W")
 
-print(g)
+pltWeekStats = function(data, timestamp, dependentVar, nor, i){
+  # Summarize gridToBattery by 2 hours in a 2 days interval
+  data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
+    summarize(gridToBattery=sum(gridToBattery))  %>%
+    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme +
+    ggtitle(paste('Grid to Battery ', toString(interval(date(nor), (date(nor) + days(2)))), ' ', sep="")) +
+    xlab("Time") + ylab("Grid To Battery, kWh") +
+    coord_cartesian(xlim = c(nor, nor + days(2)))
+  ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
+}
 
-weekStats <- function(data, timestamp, y){
+weekStats <- function(data, timestamp, dependentVar){
   setwd("F:\\Users\\Janis\\VIKA\\plots\\")
   nor = min(timestamp)
+  print(nor)
   i = 1
   while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
-    # Summarize gridToBattery by hour, day and week:
-    data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-    summarize(gridToBattery=sum(gridToBattery))  %>%
-    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + xlab("Time") + ylab("Grid To Battery, kWh") +
-    coord_cartesian(xlim = c(nor, nor + days(2)))
-    ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
+    pltWeekStats(datKWH, timestamp, gridToBattery, nor, i)
     nor =  nor + days(2)
     i = i + 1
   }
 }
 
 weekStats(datKWH, timestamp, gridToBattery)
-
-# Summarize gridToBattery by hour, day and week:
-datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-  summarize(gridToBattery=sum(gridToBattery))  %>%
-  ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme +
-  coord_cartesian(xlim = c(nor, nor + days(2)))
-ggsave("r1.pdf", width = 29.7, height = 21.0, units = "cm")
 
 datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
   summarize(gridToBattery=sum(gridToBattery)) %>%
