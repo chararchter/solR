@@ -32,13 +32,11 @@ g = g + sharedTheme
 
 print(g)
 
-
 weekStats <- function(data, timestamp, y){
   setwd("F:\\Users\\Janis\\VIKA\\plots\\")
   nor = min(timestamp)
   i = 1
-  while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {      {
-  # for (week in timestamp){
+  while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
     # Summarize gridToBattery by hour, day and week:
     data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
     summarize(gridToBattery=sum(gridToBattery))  %>%
@@ -48,9 +46,8 @@ weekStats <- function(data, timestamp, y){
     nor =  nor + days(2)
     i = i + 1
   }
-  # return(object)
 }
-}
+
 weekStats(datKWH, timestamp, gridToBattery)
 
 # Summarize gridToBattery by hour, day and week:
