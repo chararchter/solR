@@ -3,7 +3,7 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 
-setwd("F:\\Users\\Janis\\VIKA\\data\\")
+setwd("..\\data\\")
 lstData = list.files(pattern="*.csv")
 
 colNamesKHW  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
@@ -27,39 +27,39 @@ sharedAxis = xlab("Time")
 # scale_x_datetime(breaks='1 week', labels = "%W")
 
 pltWeekStats = function(data, timestamp, dependentVar, nor, i){
-  # Summarize gridToBattery by 2 hours in a 2 days interval
-  data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
+    # Summarize gridToBattery by 2 hours in a 2 days interval
+    data %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
     summarize(gridToBattery=sum(gridToBattery))  %>%
     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme +
     sharedAxis + ylab("Grid To Battery, kWh") +
     ggtitle(paste('Grid to Battery ', toString(interval(date(nor), (date(nor) + days(2)))))) +
     coord_cartesian(xlim = c(nor, nor + days(2)))
-  ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
+    ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
 }
 
 weekStats <- function(data, timestamp, dependentVar){
-  setwd("F:\\Users\\Janis\\VIKA\\plots\\")
-  nor = min(timestamp)
-  print(nor)
-  i = 1
-  while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
-    pltWeekStats(datKWH, timestamp, gridToBattery, nor, i)
-    nor =  nor + days(2)
-    i = i + 1
-  }
+    setwd("..\\plots\\")
+    nor = min(timestamp)
+    print(nor)
+    i = 1
+    while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
+        pltWeekStats(datKWH, timestamp, gridToBattery, nor, i)
+        nor =  nor + days(2)
+        i = i + 1
+    }
 }
 
 weekStats(datKWH, timestamp, gridToBattery)
 
 datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-  summarize(gridToBattery=sum(gridToBattery)) %>%
-  ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
-  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) + 
-  ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
+    summarize(gridToBattery=sum(gridToBattery)) %>%
+    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
+    coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) + 
+    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
+    ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
 
 datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
-  summarize(gridToBattery=sum(gridToBattery)) %>%
-  ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
-  ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
+    summarize(gridToBattery=sum(gridToBattery)) %>%
+    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
+    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
+    ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
