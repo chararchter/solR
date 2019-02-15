@@ -3,45 +3,12 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 
-meteoData = function(){
-    setwd("F:\\Users\\Janis\\VIKA\\solR\\data\\meteo\\")
+default = "F:\\Users\\Janis\\VIKA\\solR\\"
+
+importData = function(whichData, id, colNames, skipCount){
+    setwd(paste(default, "data\\", whichData, "\\", sep=""))
     lstData = list.files(pattern="*.csv")
-}
-
-solarSummary = function(){
-    setwd("F:\\Users\\Janis\\VIKA\\solR\\data\\solar\\")
-    lstData = list.files(pattern="*.csv")
-    colNamesKHW  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
-    datKWH = read.csv(grep("main", lstData, value = TRUE), skip = 2, header = FALSE, col.names = colNamesKHW, sep = ",")    
-}
-
-solarData = function(){
-    setwd("F:\\Users\\Janis\\VIKA\\solR\\data\\solar\\")
-    lstData = list.files(pattern="*.csv")
-    colNamesKHW  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
-    datKWH = read.csv(grep("kwh", lstData, value = TRUE), skip = 2, header = FALSE, col.names = colNamesKHW, sep = ",")    
-}
-
-
-year = 2019
-month = formatC(seq(1, 12), width=2, flag=0)
-day = formatC(seq(1, 31), width=2, flag=0)
-
-interpretFilename = function(filename){
-    # input: name of the date file
-    # output: you know which day month and year it is by parsing filename
-    # NEVERMIND THIS IS ATROCIOUS WAY TO IMPLEMENT IT CUZ
-    # CONSIDER IN 0101 THERE IS 01 AND ALSO 10
-    # TO BE DELETED
-    #define possible patterns
-    years = 2019
-    months = formatC(seq(1, 12), width=2, flag=0)
-    days = formatC(seq(1, 31), width=2, flag=0)
-    
-    year = patternSearch(filename, years)
-    month = patternSearch(filename, months)
-    day = patternSearch(filename, days)
-    return(c(year, month, day))
+    data = read.csv(grep(id, lstData, value = TRUE), skip = 2, header = FALSE, col.names = colNames, sep = ",")
 }
 
 fixDatetime = function(data){
@@ -52,7 +19,9 @@ fixDatetime = function(data){
     return(data)
 }
 
-datKWH = solarData()
+colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
+
+datKWH = importData("solar", "kwh", colNamesKWH, 2)
 datKWH = fixDatetime(datKWH)
 
 timestamp = datKWH$timestamp
