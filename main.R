@@ -8,21 +8,36 @@ default = "F:\\Users\\Janis\\VIKA\\solR\\"
 importData = function(whichData, id, colNames, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
     lstData = list.files(pattern="*.csv")
-    data = read.csv(grep(id, lstData, value = TRUE), skip = 2, header = FALSE, col.names = colNames, sep = ",")
+    if (id == "main"){
+        data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, sep = ",")\
+        # names(data)[names(data) == 'old.var.name'] <- 'new.var.name'
+    }
+    else {
+    data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, col.names = colNames, sep = ",")
+    }
 }
 
 fixDatetime = function(data){
     # convert timestamp class from factor to POSIXct
-    data$timestamp <- as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
+    data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
     # replace NA values with 0
-    data[is.na(data)] <- 0
+    data[is.na(data)] = 0
     return(data)
 }
 
+colNamesMeteo = c("timestamp", "tz", "wdir", "velocity", "pressure", "humidity", "temperature", "solarIrradiance")
 colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
 
 datKWH = importData("solar", "kwh", colNamesKWH, 2)
 datKWH = fixDatetime(datKWH)
+
+datSol = importData("solar", "main", colNamesKWH, 2)
+datSol = fixDatetime(datKWH)
+
+# there is a problem with this one and all others in future.
+# meteo has >1 case of specific filenames in folder.
+# datMeteo = importData("meteo", "idk", colNamesMeteo, 1)
+# datMeteo = fixDatetime(datKWH)
 
 timestamp = datKWH$timestamp
 gridToBattery = datKWH$gridToBattery
