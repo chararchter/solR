@@ -8,13 +8,22 @@ default = "F:\\Users\\Janis\\VIKA\\solR\\"
 importData = function(whichData, id, colNames, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
     lstData = list.files(pattern="*.csv")
+    # this is temporary solution until it gets clear if data in LU is identical to VRM
+    # 2 precious previous lines then gonna migrate to howMuchFiles and here will be just import
+    # difference in if main is that column names are not specified
     if (id == "main"){
-        data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, sep = ",")\
-        # names(data)[names(data) == 'old.var.name'] <- 'new.var.name'
+        data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, sep = ",")
     }
     else {
     data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, col.names = colNames, sep = ",")
+    return(data)
     }
+}
+
+howMuchFiles = function(whichData){
+    setwd(paste(default, "data\\", whichData, "\\", sep=""))
+    lstData = list.files(pattern="*.csv")
+    return(lstData)
 }
 
 fixDatetime = function(data){
@@ -25,19 +34,35 @@ fixDatetime = function(data){
     return(data)
 }
 
+mergeData = function(id){
+    dataLst = howMuchFiles(id)
+    # create an empty data frame by removing all the rows from existent data frame cuz it has columns i want
+    empty_df = importData(id, dataLst[1], colNamesMeteo, 1)
+    empty_df = empty_df[FALSE,]
+    
+    for (i in 1:length(meteoLst)){
+        dfi = importData(id, meteoLst[i], colNamesMeteo, 1)
+        total = rbind(empty_df, dfi) 
+        empty_df = total
+    }
+    # sort a data frame by date
+    total$timestamp <- lubridate::as_datetime(total$timestamp)
+    dplyr::arrange(total, timestamp)
+    return(total)
+}
+
+
 colNamesMeteo = c("timestamp", "tz", "wdir", "velocity", "pressure", "humidity", "temperature", "solarIrradiance")
 colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
 
 datKWH = importData("solar", "kwh", colNamesKWH, 2)
 datKWH = fixDatetime(datKWH)
 
-datSol = importData("solar", "main", colNamesKWH, 2)
-datSol = fixDatetime(datKWH)
+# datSol = importData("solar", "main", colNamesKWH, 2)
+# datSol = fixDatetime(datSol)
 
-# there is a problem with this one and all others in future.
-# meteo has >1 case of specific filenames in folder.
-# datMeteo = importData("meteo", "idk", colNamesMeteo, 1)
-# datMeteo = fixDatetime(datKWH)
+datMeteo = mergeData("meteo")
+# datMeteo = fixDatetime(datMeteo)
 
 timestamp = datKWH$timestamp
 gridToBattery = datKWH$gridToBattery
@@ -59,7 +84,7 @@ pltWeekStats = function(data, timestamp, dependentVar, nor, i){
     ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
 }
 
-weekStats <- function(data, timestamp, dependentVar){
+weekStats = function(data, timestamp, dependentVar){
     setwd("F:\\Users\\Janis\\VIKA\\solR\\plots\\")
     nor = min(timestamp)
     i = 1
@@ -70,18 +95,18 @@ weekStats <- function(data, timestamp, dependentVar){
     }
 }
 
-weekStats(datKWH, timestamp, gridToBattery)
+# weekStats(datKWH, timestamp, gridToBattery)
 
 # Plots for a month
-datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-    summarize(gridToBattery=sum(gridToBattery)) %>%
-    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
-    coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) + 
-    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-    ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
-
-datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
-    summarize(gridToBattery=sum(gridToBattery)) %>%
-    ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
-    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-    ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
+# datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
+#     summarize(gridToBattery=sum(gridToBattery)) %>%
+#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
+#     coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) + 
+#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
+#     ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
+# 
+# datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
+#     summarize(gridToBattery=sum(gridToBattery)) %>%
+#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
+#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
+#     ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
