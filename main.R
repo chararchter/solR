@@ -40,8 +40,8 @@ mergeData = function(id){
     empty_df = importData(id, dataLst[1], colNamesMeteo, 1)
     empty_df = empty_df[FALSE,]
     
-    for (i in 1:length(meteoLst)){
-        dfi = importData(id, meteoLst[i], colNamesMeteo, 1)
+    for (i in 1:length(dataLst)){
+        dfi = importData(id, dataLst[i], colNamesMeteo, 1)
         total = rbind(empty_df, dfi) 
         empty_df = total
     }
@@ -50,28 +50,6 @@ mergeData = function(id){
     dplyr::arrange(total, timestamp)
     return(total)
 }
-
-
-colNamesMeteo = c("timestamp", "tz", "wdir", "velocity", "pressure", "humidity", "temperature", "solarIrradiance")
-colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
-
-datKWH = importData("solar", "kwh", colNamesKWH, 2)
-datKWH = fixDatetime(datKWH)
-
-# datSol = importData("solar", "main", colNamesKWH, 2)
-# datSol = fixDatetime(datSol)
-
-datMeteo = mergeData("meteo")
-# datMeteo = fixDatetime(datMeteo)
-
-timestamp = datKWH$timestamp
-gridToBattery = datKWH$gridToBattery
-
-# Common plot theme
-sharedTheme = theme_minimal()
-# Change the appearance of the main title
-sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
-sharedAxis = xlab("Time")
 
 pltWeekStats = function(data, timestamp, dependentVar, nor, i){
     # Summarize gridToBattery by 2 hours in a 2 days interval
@@ -85,7 +63,7 @@ pltWeekStats = function(data, timestamp, dependentVar, nor, i){
 }
 
 weekStats = function(data, timestamp, dependentVar){
-    setwd("F:\\Users\\Janis\\VIKA\\solR\\plots\\")
+    setwd(paste(default, "plots\\", sep=""))
     nor = min(timestamp)
     i = 1
     while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
@@ -95,18 +73,50 @@ weekStats = function(data, timestamp, dependentVar){
     }
 }
 
+colNamesMeteo = c("timestamp", "tz", "wdir", "velocity", "pressure", "humidity", "temperature", "solarIrradiance")
+colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
+
+datKWH = importData("solar", "kwh", colNamesKWH, 2)
+datKWH = fixDatetime(datKWH)
+
+# datSol = importData("solar", "main", colNamesKWH, 2)
+# datSol = fixDatetime(datSol)
+
+datMeteo = mergeData("meteo")
+
+# Common plot theme
+sharedTheme = theme_minimal()
+# Change the appearance of the main title
+sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
+sharedAxis = xlab("Time")
+
+timestamp = datKWH$timestamp
+gridToBattery = datKWH$gridToBattery
+
+
+#######################
+# plots
+#######################
+setwd(paste(default, "plots\\", sep=""))
 # weekStats(datKWH, timestamp, gridToBattery)
 
 # Plots for a month
 # datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
 #     summarize(gridToBattery=sum(gridToBattery)) %>%
-#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + 
-#     coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) + 
+#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) +
 #     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
 #     ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
-# 
+    
 # datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
 #     summarize(gridToBattery=sum(gridToBattery)) %>%
 #     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
 #     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
 #     ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
+
+ggplot() + 
+    geom_point(data = datKWH, aes(x = timestamp, y = gridToBattery, color = "red")) +
+    geom_line(data = datMeteo, aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance), color = "blue") +
+    sharedTheme + 
+    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
+ggsave("r6.pdf", width = 29.7, height = 21.0, units = "cm")
