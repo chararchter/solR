@@ -2,12 +2,12 @@
 library(ggplot2)
 library(lubridate)
 library(dplyr)
+library(gridExtra) # combining 2 plots together in a grid
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
 
 importData = function(whichData, id, colNames, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
-    lstData = list.files(pattern="*.csv")
     # this is temporary solution until it gets clear if data in LU is identical to VRM
     # 2 precious previous lines then gonna migrate to howMuchFiles and here will be just import
     # difference in if main is that column names are not specified
@@ -73,31 +73,37 @@ weekStats = function(data, timestamp, dependentVar){
     }
 }
 
-colNamesMeteo = c("timestamp", "tz", "wdir", "velocity", "pressure", "humidity", "temperature", "solarIrradiance")
-colNamesKWH  = c("timestamp", "gridToBattery", "gridToConsumers", "PVToBattery", "PVToGrid", "PVToConsumers", "batteryToConsumers", "batteryToGrid", "gensetToConsumers", "gensetToBattery", "gas")
 
-datKWH = importData("solar", "kwh", colNamesKWH, 2)
-datKWH = fixDatetime(datKWH)
 
-# datSol = importData("solar", "main", colNamesKWH, 2)
-# datSol = fixDatetime(datSol)
+# datKWH = importData("solar", "kwh", colNamesKWH, 2)
+# datKWH = fixDatetime(datKWH)
+# 
+# # datSol = importData("solar", "main", colNamesKWH, 2)
+# # datSol = fixDatetime(datSol)
+# 
 
-datMeteo = mergeData("meteo")
+# datMeteo = importData("meteo", "T000000", colNamesMeteo, 2)
+# datMeteo = fixDatetime(datMeteo)
+# datMeteo = mergeData("meteo")
+# 
+# # Common plot theme
+# sharedTheme = theme_minimal()
+# # Change the appearance of the main title
+# sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
+# sharedAxis = xlab("Time")
+# 
+# timestamp = datKWH$timestamp
+# gridToBattery = datKWH$gridToBattery
+# gridToConsumers = datKWH$gridToConsumers
 
-# Common plot theme
-sharedTheme = theme_minimal()
-# Change the appearance of the main title
-sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
-sharedAxis = xlab("Time")
+setwd(paste(default, "code\\", sep=""))
 
-timestamp = datKWH$timestamp
-gridToBattery = datKWH$gridToBattery
-
+if(!exists("colNames", mode="function")) source("colNames.R")
 
 #######################
 # plots
 #######################
-setwd(paste(default, "plots\\", sep=""))
+# setwd(paste(default, "plots\\", sep=""))
 # weekStats(datKWH, timestamp, gridToBattery)
 
 # Plots for a month
@@ -114,9 +120,29 @@ setwd(paste(default, "plots\\", sep=""))
 #     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
 #     ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
 
-ggplot() + 
-    geom_point(data = datKWH, aes(x = timestamp, y = gridToBattery, color = "red")) +
-    geom_line(data = datMeteo, aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance), color = "blue") +
-    sharedTheme + 
-    ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-ggsave("r6.pdf", width = 29.7, height = 21.0, units = "cm")
+# 
+# plotKWH = geom_point(data = datKWH, aes(x = timestamp, y = gridToBattery, color = "red"))
+# plotKWH2 = geom_point(data = datKWH, aes(x = timestamp, y = gridToConsumers, color = "green"))
+# plotMeteo = geom_line(data = datMeteo, aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance/3000), color = "blue")
+# 
+# ggplot() +
+#     plotKWH +
+#     plotMeteo + 
+#     # plotKWH2 +
+#     sharedTheme +
+#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
+#     # grid.arrange(grobs = list(plotKWH, plotMeteo), ncol=1,nrow=2)
+#     # grid.arrange(plotKWH, plotMeteo, ncol=1,nrow=2)
+# ggsave("r6.pdf", width = 29.7, height = 21.0, units = "cm")
+# 
+# ggplot() +
+#     plotKWH +
+#     sharedTheme + sharedAxis + ylab("Grid To Battery, kWh") +
+#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
+# ggsave("rkwh.pdf", width = 29.7, height = 21.0, units = "cm")
+# 
+# ggplot() +
+#     plotMeteo +
+#     sharedTheme + sharedAxis + ylab("Solar Irradiance, W/m2") +
+#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
+# ggsave("rmeteo.pdf", width = 29.7, height = 21.0, units = "cm")
