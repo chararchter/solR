@@ -6,18 +6,11 @@ library(gridExtra) # combining 2 plots together in a grid
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
 
-importData = function(whichData, id, colNames, skipCount){
+importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
-    # this is temporary solution until it gets clear if data in LU is identical to VRM
-    # 2 precious previous lines then gonna migrate to howMuchFiles and here will be just import
-    # difference in if main is that column names are not specified
-    if (id == "main"){
-        data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, sep = ",")
-    }
-    else {
-    data = read.csv(grep(id, lstData, value = TRUE), skip = skipCount, header = FALSE, col.names = colNames, sep = ",")
+    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = skipCount,
+                    header = FALSE, col.names = colNames(id), sep = ",")
     return(data)
-    }
 }
 
 howMuchFiles = function(whichData){
@@ -52,7 +45,7 @@ mergeData = function(id){
 }
 
 pltWeekStats = function(data, timestamp, dependentVar, nor, i){
-    # Summarize gridToBattery by 2 hours in a 2 days interval
+    # Summarize gridToBattery by 1 hours in a 2 days interval
     data %>% group_by(timestamp=floor_date(timestamp, "1 hour")) %>%
     summarize(gridToBattery=sum(gridToBattery))  %>%
     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme +
@@ -73,17 +66,18 @@ weekStats = function(data, timestamp, dependentVar){
     }
 }
 
+setwd(paste(default, "code\\", sep=""))
+if(!exists("colNames", mode="function")) source("colNames.R")
 
-
-# datKWH = importData("solar", "kwh", colNamesKWH, 2)
+# datKWH = importData("solar", "kwh", 2)
 # datKWH = fixDatetime(datKWH)
-# 
-# # datSol = importData("solar", "main", colNamesKWH, 2)
-# # datSol = fixDatetime(datSol)
-# 
 
-# datMeteo = importData("meteo", "T000000", colNamesMeteo, 2)
-# datMeteo = fixDatetime(datMeteo)
+datSol = importData("solar", "main", 3)
+
+# datSol = fixDatetime(datSol)
+
+# 
+# datMeteo = importData("meteo", "T000000", 1)
 # datMeteo = mergeData("meteo")
 # 
 # # Common plot theme
@@ -95,10 +89,6 @@ weekStats = function(data, timestamp, dependentVar){
 # timestamp = datKWH$timestamp
 # gridToBattery = datKWH$gridToBattery
 # gridToConsumers = datKWH$gridToConsumers
-
-setwd(paste(default, "code\\", sep=""))
-
-if(!exists("colNames", mode="function")) source("colNames.R")
 
 #######################
 # plots
