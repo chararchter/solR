@@ -90,37 +90,67 @@ sharedAxis = xlab("Time")
 
 #######################
 # plots
+# A4: width = 29.7, height = 21.0, units = "cm"
+# smaller: width = 20.0, height = 12.36, units = "cm"
 #######################
 setwd(paste(default, "plots\\", sep=""))
 # weekStats(datKWH, timestamp, gridToBattery)
 
+width = 29.7
+height = 21.0
+
 # Plots for a month
-# datSol %>% group_by(timestamp=floor_date(timestamp, "1 day")) %>%
+# datSol %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
 #     summarize(solD40JA_BatV=sum(solD40JA_BatV)) %>%
 #     ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(14))) +
-#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(14)))))
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
 #     ggsave("sol1.pdf", width = 29.7, height = 21.0, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + days(31))) +
-    ggtitle(paste('PV Voltage', toString(interval(min(timestamp), min(timestamp) + days(31)))))
-ggsave("sol2.pdf", width = 29.7, height = 21.0, units = "cm")
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('Battery Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_batV.pdf", width = width, height = height, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_batA.pdf", width = width, height = height, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatW)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('Battery Watts', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_batW.pdf", width = width, height = height, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_V)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_PV_V.pdf", width = width, height = height, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_I)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_PV_A.pdf", width = width, height = height, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_W)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
+ggsave("sol_PV_W.pdf", width = width, height = height, units = "cm")
 
 
-# Plots for a month
+
 # datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
 #     summarize(gridToBattery=sum(gridToBattery)) %>%
 #     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() +
 #     sharedTheme +  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) +
 #     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-#     ggsave("r2.pdf", width = 29.7, height = 21.0, units = "cm")
+#     ggsave("r2.pdf", width = width, height = height, units = "cm")
     
 # datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
 #     summarize(gridToBattery=sum(gridToBattery)) %>%
 #     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
 #     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-#     ggsave("r3.pdf", width = 29.7, height = 21.0, units = "cm")
+#     ggsave("r3.pdf", width = width, height = height, units = "cm")
 
 # 
 # plotKWH = geom_point(data = datKWH, aes(x = timestamp, y = gridToBattery, color = "red"))
