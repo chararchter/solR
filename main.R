@@ -5,6 +5,8 @@ library(dplyr)
 library(gridExtra) # combining 2 plots together in a grid
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
+solNames = c("solD40JA", "solD40LG", "solD13JA", "solD13LG", "solA13JA",
+             "solA13LG", "solR13JA", "solR13LG", "solD90JA", "solD90LG")
 
 importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
@@ -66,6 +68,35 @@ weekStats = function(data, timestamp, dependentVar){
     }
 }
 
+searchPattern = function(name, parameter){
+    for (char in 1:length(name)){
+        for (i in 1:length(parameter)){
+            if (grepl(parameter[i], name[char])){
+                return(parameter[i])
+            }
+        }
+    }
+}
+
+
+interpretSolPanel = function(solPanel){
+    #define possible patterns
+    directions = c('D','A', 'R')
+    types = c('JA','LG')
+    degrees = c('13', '40', '90')
+    
+    dir = searchPattern(solPanel, directions)
+    type = searchPattern(solPanel, types)
+    degree = searchPattern(solPanel, degrees)
+    
+    return(c(dir, degree, type))
+}
+
+
+#######################
+# import
+#######################
+
 setwd(paste(default, "code\\", sep=""))
 if(!exists("colNames", mode="function")) source("colNames.R")
 
@@ -78,15 +109,6 @@ datSol = fixDatetime(datSol)
 # datMeteo = importData("meteo", "T000000", 1)
 # datMeteo = mergeData("meteo")
 
-# Common plot theme
-sharedTheme = theme_minimal()
-# Change the appearance of the main title
-sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
-sharedAxis = xlab("Time")
-# 
-# timestamp = datKWH$timestamp
-# gridToBattery = datKWH$gridToBattery
-# gridToConsumers = datKWH$gridToConsumers
 
 #######################
 # plots
@@ -94,6 +116,16 @@ sharedAxis = xlab("Time")
 # smaller: width = 20.0, height = 12.36, units = "cm"
 #######################
 setwd(paste(default, "plots\\", sep=""))
+
+# Common plot theme
+sharedTheme = theme_minimal()
+# Change the appearance of the main title
+sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
+sharedAxis = xlab("Time")
+
+# timestamp = datKWH$timestamp
+# gridToBattery = datKWH$gridToBattery
+# gridToConsumers = datKWH$gridToConsumers
 # weekStats(datKWH, timestamp, gridToBattery)
 
 width = 29.7
@@ -106,6 +138,10 @@ height = 21.0
 #     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
 #     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
 #     ggsave("sol1.pdf", width = 29.7, height = 21.0, units = "cm")
+
+
+
+
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
