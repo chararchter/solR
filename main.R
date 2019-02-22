@@ -73,18 +73,16 @@ if(!exists("colNames", mode="function")) source("colNames.R")
 # datKWH = fixDatetime(datKWH)
 
 datSol = importData("solar", "main", 3)
+datSol = fixDatetime(datSol)
 
-# datSol = fixDatetime(datSol)
-
-# 
 # datMeteo = importData("meteo", "T000000", 1)
 # datMeteo = mergeData("meteo")
-# 
-# # Common plot theme
-# sharedTheme = theme_minimal()
-# # Change the appearance of the main title
-# sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
-# sharedAxis = xlab("Time")
+
+# Common plot theme
+sharedTheme = theme_minimal()
+# Change the appearance of the main title
+sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
+sharedAxis = xlab("Time")
 # 
 # timestamp = datKWH$timestamp
 # gridToBattery = datKWH$gridToBattery
@@ -93,8 +91,22 @@ datSol = importData("solar", "main", 3)
 #######################
 # plots
 #######################
-# setwd(paste(default, "plots\\", sep=""))
+setwd(paste(default, "plots\\", sep=""))
 # weekStats(datKWH, timestamp, gridToBattery)
+
+# Plots for a month
+# datSol %>% group_by(timestamp=floor_date(timestamp, "1 day")) %>%
+#     summarize(solD40JA_BatV=sum(solD40JA_BatV)) %>%
+#     ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(14))) +
+#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(14)))))
+#     ggsave("sol1.pdf", width = 29.7, height = 21.0, units = "cm")
+
+datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + days(31))) +
+    ggtitle(paste('PV Voltage', toString(interval(min(timestamp), min(timestamp) + days(31)))))
+ggsave("sol2.pdf", width = 29.7, height = 21.0, units = "cm")
+
 
 # Plots for a month
 # datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
