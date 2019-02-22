@@ -29,15 +29,19 @@ fixDatetime = function(data){
     return(data)
 }
 
-mergeData = function(id){
-    dataLst = howMuchFiles(id)
+mergeData = function(whichData, id){
+    setwd(paste(default, "data\\", whichData, "\\", sep=""))
+    dataLst = howMuchFiles(whichData)
+    print(dataLst)
     # create an empty data frame by removing all the rows from existent data frame cuz it has columns i want
-    empty_df = importData(id, dataLst[1], colNamesMeteo, 1)
+    empty_df = read.csv(grep(id, dataLst[1], value = TRUE), skip = 1,
+            header = FALSE, col.names = colNames(id), sep = ",")
+
     empty_df = empty_df[FALSE,]
-    
     for (i in 1:length(dataLst)){
-        dfi = importData(id, dataLst[i], colNamesMeteo, 1)
-        total = rbind(empty_df, dfi) 
+        dfi = read.csv(grep(id, dataLst[i], value = TRUE), skip = 1,
+            header = FALSE, col.names = colNames(id), sep = ",")
+        total = rbind(empty_df, dfi)
         empty_df = total
     }
     # sort a data frame by date
@@ -106,14 +110,12 @@ if(!exists("colNames", mode="function")) source("colNames.R")
 datSol = importData("solar", "main", 3)
 datSol = fixDatetime(datSol)
 
-# datMeteo = importData("meteo", "T000000", 1)
-# datMeteo = mergeData("meteo")
+# # datMeteo = importData("meteo", "T000000", 1)
+datMeteo = mergeData("meteo", "T000000")
 
 
 #######################
 # plots
-# A4: width = 29.7, height = 21.0, units = "cm"
-# smaller: width = 20.0, height = 12.36, units = "cm"
 #######################
 setwd(paste(default, "plots\\", sep=""))
 
@@ -123,94 +125,41 @@ sharedTheme = theme_minimal()
 sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
 sharedAxis = xlab("Time")
 
-# timestamp = datKWH$timestamp
-# gridToBattery = datKWH$gridToBattery
-# gridToConsumers = datKWH$gridToConsumers
-# weekStats(datKWH, timestamp, gridToBattery)
-
 width = 29.7
 height = 21.0
 
-# Plots for a month
-# datSol %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-#     summarize(solD40JA_BatV=sum(solD40JA_BatV)) %>%
-#     ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-#     ggsave("sol1.pdf", width = 29.7, height = 21.0, units = "cm")
-
-
-
-
-
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_batV.pdf", width = width, height = height, units = "cm")
+    ggtitle(paste('Battery Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("Battery voltage, V")
+ggsave(paste(toString(solNames[1]), "_batV.pdf",sep=""), width = width, height = height, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_batA.pdf", width = width, height = height, units = "cm")
+    ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("Battery current, A")
+ggsave(paste(toString(solNames[1]), "_batA.pdf",sep=""), width = width, height = height, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatW)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Watts', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_batW.pdf", width = width, height = height, units = "cm")
+    ggtitle(paste('Battery Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("Battery power, W")
+ggsave(paste(toString(solNames[1]), "_batW.pdf",sep=""), width = width, height = height, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_V)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_PV_V.pdf", width = width, height = height, units = "cm")
+    ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("PV voltage, V")
+ggsave(paste(toString(solNames[1]), "_PV_V.pdf",sep=""), width = width, height = height, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_I)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_PV_A.pdf", width = width, height = height, units = "cm")
+    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("PV current, A")
+ggsave(paste(toString(solNames[1]), "_PV_A.pdf",sep=""), width = width, height = height, units = "cm")
 
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_W)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31)))))
-ggsave("sol_PV_W.pdf", width = width, height = height, units = "cm")
-
-
-
-# datKWH %>% group_by(timestamp=floor_date(timestamp, "2 hours")) %>%
-#     summarize(gridToBattery=sum(gridToBattery)) %>%
-#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(timestamp), min(timestamp) + months(1))) +
-#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-#     ggsave("r2.pdf", width = width, height = height, units = "cm")
-    
-# datKWH %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
-#     summarize(gridToBattery=sum(gridToBattery)) %>%
-#     ggplot(aes(x = timestamp, y = gridToBattery)) + geom_point() + sharedTheme + sharedAxis + 
-#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1)))))
-#     ggsave("r3.pdf", width = width, height = height, units = "cm")
-
-# 
-# plotKWH = geom_point(data = datKWH, aes(x = timestamp, y = gridToBattery, color = "red"))
-# plotKWH2 = geom_point(data = datKWH, aes(x = timestamp, y = gridToConsumers, color = "green"))
-# plotMeteo = geom_line(data = datMeteo, aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance/3000), color = "blue")
-# 
-# ggplot() +
-#     plotKWH +
-#     plotMeteo + 
-#     # plotKWH2 +
-#     sharedTheme +
-#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
-#     # grid.arrange(grobs = list(plotKWH, plotMeteo), ncol=1,nrow=2)
-#     # grid.arrange(plotKWH, plotMeteo, ncol=1,nrow=2)
-# ggsave("r6.pdf", width = 29.7, height = 21.0, units = "cm")
-# 
-# ggplot() +
-#     plotKWH +
-#     sharedTheme + sharedAxis + ylab("Grid To Battery, kWh") +
-#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
-# ggsave("rkwh.pdf", width = 29.7, height = 21.0, units = "cm")
-# 
-# ggplot() +
-#     plotMeteo +
-#     sharedTheme + sharedAxis + ylab("Solar Irradiance, W/m2") +
-#     ggtitle(paste('Grid to Battery ', toString(interval(min(timestamp), min(timestamp) + months(1))))) +
-# ggsave("rmeteo.pdf", width = 29.7, height = 21.0, units = "cm")
+    ggtitle(paste('PV Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+    sharedAxis + ylab("PV power, W")
+ggsave(paste(toString(solNames[1]), "_PV_W.pdf",sep=""), width = width, height = height, units = "cm")
