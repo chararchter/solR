@@ -32,7 +32,7 @@ fixDatetime = function(data){
 mergeData = function(whichData, id){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
     dataLst = howMuchFiles(whichData)
-    print(dataLst)
+    # print(dataLst)
     # create an empty data frame by removing all the rows from existent data frame cuz it has columns i want
     empty_df = read.csv(grep(id, dataLst[1], value = TRUE), skip = 1,
             header = FALSE, col.names = colNames(id), sep = ",")
@@ -94,14 +94,12 @@ interpretSolPanel = function(solPanel){
     dir = searchPattern(solPanel, directions)
     type = searchPattern(solPanel, types)
     degree = searchPattern(solPanel, degrees)
-    
     device = searchPattern(solPanel, devices)
     unit = searchPattern(solPanel, units)
     
     parameters <- c(dir, degree, type, device, unit)
     names(parameters) <- c("dir", "degree", "type", "device", "unit")
     return(parameters)
-    # return(c(dir, degree, type))
 }
 
 whichDevice = function(device){
@@ -152,27 +150,26 @@ sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold"
 sharedAxis = xlab("Time")
 
 pltMonth = function(solVar){
-width = 29.7
-height = 21.0
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("Battery voltage, V")
-ggsave(paste(toString(solNames[1]), "_batV.pdf",sep=""), width = width, height = height, units = "cm")
+    # there is a mistake in the next line. interpretSolPanel argument should change based on function argument but now it's static
+    solname = interpretSolPanel('solD40JA_BatV')
+    panel = paste(toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
+    panelVerbose = paste("Solar panel ", panel, sep = "")
+    labelSolVar = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
+    measurement = paste("_", solname["device"], solname["unit"], sep = "")
+    
+    intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))
+    intrval2 = toString(interval(intrval1[1], intrval1[2]))
+    width = 29.7
+    height = 21.0
+    
+    datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
+        sharedTheme +  coord_cartesian(xlim = intrval1) +
+        ggtitle(paste(panelVerbose, intrval2)) + sharedAxis + ylab(labelSolVar)
+    ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
 }
 
-# pltMonth(solD40JA_BatV)
-
-# solNames[1]
-
-solname = interpretSolPanel('solD40JA_BatV')
-paste(solname)
-
-title = paste("Solar panel ", toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
-axis = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
-
-print(title)
-print(axis)
+pltMonth(datSol$solD40JA_BatV)
+pltMonth(datSol$solD40JA_BatA)
 
 # datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
 #     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
