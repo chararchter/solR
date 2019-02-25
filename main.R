@@ -5,8 +5,9 @@ library(dplyr)
 library(gridExtra) # combining 2 plots together in a grid
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
-solNames = c("solD40JA", "solD40LG", "solD13JA", "solD13LG", "solA13JA",
-             "solA13LG", "solR13JA", "solR13LG", "solD90JA", "solD90LG")
+# solNames = c("solD40JA", "solD40LG", "solD13JA", "solD13LG", "solA13JA",
+#              "solA13LG", "solR13JA", "solR13LG", "solD90JA", "solD90LG")
+solNames = c("solD40", "solD13","solA13", "solR13", "solD90")
 
 importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
@@ -149,9 +150,10 @@ sharedTheme = theme_minimal()
 sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
 sharedAxis = xlab("Time")
 
-pltMonth = function(solVar){
+pltMonth = function(solName){
     # there is a mistake in the next line. interpretSolPanel argument should change based on function argument but now it's static
-    solname = interpretSolPanel('solD40JA_BatV')
+    colIndex = which( colnames(datSol)==solName )
+    solname = interpretSolPanel(solName)
     panel = paste(toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
     panelVerbose = paste("Solar panel ", panel, sep = "")
     labelSolVar = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
@@ -162,41 +164,25 @@ pltMonth = function(solVar){
     width = 29.7
     height = 21.0
     
-    datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
+    pls = datSol[, colIndex]
+    datSol %>% ggplot(aes(x = timestamp, y = pls)) + geom_point() +
         sharedTheme +  coord_cartesian(xlim = intrval1) +
         ggtitle(paste(panelVerbose, intrval2)) + sharedAxis + ylab(labelSolVar)
     ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
 }
 
-pltMonth(datSol$solD40JA_BatV)
-pltMonth(datSol$solD40JA_BatA)
+pltMonth("solD40JA_BatV")
 
-# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-#     sharedAxis + ylab("Battery current, A")
-# ggsave(paste(toString(solNames[1]), "_batA.pdf",sep=""), width = width, height = height, units = "cm")
-# 
-# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatW)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('Battery Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-#     sharedAxis + ylab("Battery power, W")
-# ggsave(paste(toString(solNames[1]), "_batW.pdf",sep=""), width = width, height = height, units = "cm")
-# 
-# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_V)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-#     sharedAxis + ylab("PV voltage, V")
-# ggsave(paste(toString(solNames[1]), "_PV_V.pdf",sep=""), width = width, height = height, units = "cm")
-# 
-# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_A)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-#     sharedAxis + ylab("PV current, A")
-# ggsave(paste(toString(solNames[1]), "_PV_A.pdf",sep=""), width = width, height = height, units = "cm")
-# 
-# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_W)) + geom_point() +
-#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-#     ggtitle(paste('PV Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-#     sharedAxis + ylab("PV power, W")
-# ggsave(paste(toString(solNames[1]), "_PV_W.pdf",sep=""), width = width, height = height, units = "cm")
+types = c('JA','LG')
+devices = c('_Bat', '_PV_')
+units = c('V', 'A', 'W')
+
+for (solName in solNames){
+    for (unit in units){
+        for (device in devices){
+            for (type in types){
+                pltMonth(paste(solName, type, device, unit, sep=""))
+            }
+        }
+    }
+}
