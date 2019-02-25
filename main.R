@@ -88,12 +88,38 @@ interpretSolPanel = function(solPanel){
     directions = c('D','A', 'R')
     types = c('JA','LG')
     degrees = c('13', '40', '90')
+    devices = c('Bat', 'PV')
+    units = c('V', 'A', 'W')
     
     dir = searchPattern(solPanel, directions)
     type = searchPattern(solPanel, types)
     degree = searchPattern(solPanel, degrees)
     
-    return(c(dir, degree, type))
+    device = searchPattern(solPanel, devices)
+    unit = searchPattern(solPanel, units)
+    
+    parameters <- c(dir, degree, type, device, unit)
+    names(parameters) <- c("dir", "degree", "type", "device", "unit")
+    return(parameters)
+    # return(c(dir, degree, type))
+}
+
+whichDevice = function(device){
+    if (device == "Bat"){
+        return("Battery")
+    }
+    if (device == "PV"){
+        return("Photovoltaic")
+    }
+}
+
+whichMeasure = function(unit){    
+    if (unit == "V")
+        return(" voltage")
+    if (unit == "A")
+        return(" current")
+    if (unit == "W")
+        return(" power")
 }
 
 
@@ -125,41 +151,55 @@ sharedTheme = theme_minimal()
 sharedTheme = sharedTheme + theme(plot.title = element_text(size=18, face="bold",margin = margin(10, 0, 10, 0)))
 sharedAxis = xlab("Time")
 
+pltMonth = function(solVar){
 width = 29.7
 height = 21.0
-
 datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatV)) + geom_point() +
     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
     ggtitle(paste('Battery Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
     sharedAxis + ylab("Battery voltage, V")
 ggsave(paste(toString(solNames[1]), "_batV.pdf",sep=""), width = width, height = height, units = "cm")
+}
 
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("Battery current, A")
-ggsave(paste(toString(solNames[1]), "_batA.pdf",sep=""), width = width, height = height, units = "cm")
+# pltMonth(solD40JA_BatV)
 
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatW)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('Battery Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("Battery power, W")
-ggsave(paste(toString(solNames[1]), "_batW.pdf",sep=""), width = width, height = height, units = "cm")
+# solNames[1]
 
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_V)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("PV voltage, V")
-ggsave(paste(toString(solNames[1]), "_PV_V.pdf",sep=""), width = width, height = height, units = "cm")
+solname = interpretSolPanel('solD40JA_BatV')
+paste(solname)
 
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_I)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("PV current, A")
-ggsave(paste(toString(solNames[1]), "_PV_A.pdf",sep=""), width = width, height = height, units = "cm")
+title = paste("Solar panel ", toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
+axis = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
 
-datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_W)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
-    ggtitle(paste('PV Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
-    sharedAxis + ylab("PV power, W")
-ggsave(paste(toString(solNames[1]), "_PV_W.pdf",sep=""), width = width, height = height, units = "cm")
+print(title)
+print(axis)
+
+# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatA)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('Battery Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+#     sharedAxis + ylab("Battery current, A")
+# ggsave(paste(toString(solNames[1]), "_batA.pdf",sep=""), width = width, height = height, units = "cm")
+# 
+# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_BatW)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('Battery Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+#     sharedAxis + ylab("Battery power, W")
+# ggsave(paste(toString(solNames[1]), "_batW.pdf",sep=""), width = width, height = height, units = "cm")
+# 
+# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_V)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('PV Voltage', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+#     sharedAxis + ylab("PV voltage, V")
+# ggsave(paste(toString(solNames[1]), "_PV_V.pdf",sep=""), width = width, height = height, units = "cm")
+# 
+# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_A)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('PV Current', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+#     sharedAxis + ylab("PV current, A")
+# ggsave(paste(toString(solNames[1]), "_PV_A.pdf",sep=""), width = width, height = height, units = "cm")
+# 
+# datSol %>% ggplot(aes(x = timestamp, y = solD40JA_PV_W)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))) +
+#     ggtitle(paste('PV Power', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + days(31))))) + 
+#     sharedAxis + ylab("PV power, W")
+# ggsave(paste(toString(solNames[1]), "_PV_W.pdf",sep=""), width = width, height = height, units = "cm")
