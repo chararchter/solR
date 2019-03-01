@@ -2,12 +2,14 @@
 library(ggplot2)
 library(lubridate)
 library(dplyr)
-library(gridExtra) # combining 2 plots together in a grid
+# library(gridExtra) # combining 2 plots together in a grid
+library(pracma)
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
-# solNames = c("solD40JA", "solD40LG", "solD13JA", "solD13LG", "solA13JA",
-#              "solA13LG", "solR13JA", "solR13LG", "solD90JA", "solD90LG")
 solNames = c("solD40", "solD13","solA13", "solR13", "solD90")
+width = 29.7
+height = 21.0
+
 
 importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
@@ -135,7 +137,6 @@ if(!exists("colNames", mode="function")) source("colNames.R")
 datSol = importData("solar", "main", 3)
 datSol = fixDatetime(datSol)
 
-# # datMeteo = importData("meteo", "T000000", 1)
 datMeteo = mergeData("meteo", "T000000")
 
 
@@ -164,8 +165,8 @@ pltMonth = function(solName){
     width = 29.7
     height = 21.0
     
-    pls = datSol[, colIndex]
-    datSol %>% ggplot(aes(x = timestamp, y = pls)) + geom_point() +
+    solVar = datSol[, colIndex]
+    datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
         sharedTheme +  coord_cartesian(xlim = intrval1) +
         ggtitle(paste(panelVerbose, intrval2)) + sharedAxis + ylab(labelSolVar)
     ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
@@ -177,12 +178,41 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
-for (solName in solNames){
-    for (unit in units){
-        for (device in devices){
-            for (type in types){
-                pltMonth(paste(solName, type, device, unit, sep=""))
-            }
-        }
-    }
-}
+# for (solName in solNames){
+#     for (unit in units){
+#         for (device in devices){
+#             for (type in types){
+#                 pltMonth(paste(solName, type, device, unit, sep=""))
+#             }
+#         }
+#     }
+# }
+
+# intrval1 = c(min(datMeteo$timestamp) + days(7), min(datMeteo$timestamp) + hours(2))
+# intrval1 = c(min(datMeteo$timestamp), min(datMeteo$timestamp) + days(31))
+intrval1 = c(as_datetime("2019-01-21 07:00:00 UTC"), as_datetime("2019-01-21 07:00:00 UTC") + hours(10))
+
+
+# splains = smooth.spline(datMeteo$timestamp, datMeteo$solarIrradiance, spar = 0.1, all.knots=TRUE)
+# meteo = data.frame(datMeteo$timestamp, datMeteo$solarIrradiance)
+# ggplot(meteo,aes(meteo$datMeteo.timestamp, meteo$datMeteo.solarIrradiance)) + geom_point() +
+#     geom_line(data=data.frame(spline(meteo)))
+
+
+splains = smooth.spline(datMeteo$timestamp, datMeteo$solarIrradiance, spar = 0.001, all.knots=TRUE)
+
+plot.new()
+jpeg('spline.jpeg', width = 1000, height = 600, units = "px", pointsize = 15)
+plot(datMeteo$timestamp, datMeteo$solarIrradiance, col="gray40", xlab = "Time", ylab ="Solar irradiance, W/m2")
+lines(splains, col = "purple", lwd = 2)
+title(main = 'Meteo dati par janvāri', cex.main = 2, font.main= 4, col.main= "black")
+dev.off()
+
+
+ggplot(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) + geom_line(splains)
+
+# datMeteo %>% ggplot(aes(x = timestamp, y = solarIrradiance)) + geom_point() +
+#     sharedTheme  + coord_cartesian(xlim = intrval1) +
+#     geom_smooth(method="auto", formula=y~splines::ns(x,8)) +
+#     ggtitle("Meteo") + sharedAxis + ylab("Solar irradiance, W/m2")
+# ggsave("meteo.pdf", width = width, height = height, units = "cm")
