@@ -53,7 +53,7 @@ mergeData = function(whichData, id){
     return(total)
 }
 
-pltWeekStats = function(data, timestamp, dependentVar, nor, i){
+pltWeekStats = function(data, timestamp, varSol, nor, i){
     # Summarize gridToBattery by 1 hours in a 2 days interval
     data %>% group_by(timestamp=floor_date(timestamp, "1 hour")) %>%
     summarize(gridToBattery=sum(gridToBattery))  %>%
@@ -64,12 +64,12 @@ pltWeekStats = function(data, timestamp, dependentVar, nor, i){
     ggsave(paste('week', toString(i), '.pdf', sep=""), width = 29.7, height = 21.0, units = "cm")
 }
 
-weekStats = function(data, timestamp, dependentVar){
+weekStats = function(data, timestamp, varSol){
     setwd(paste(default, "plots\\", sep=""))
     nor = min(timestamp)
     i = 1
     while (interval(date(nor), (date(nor) + days(2))) %within% interval(date(min(timestamp)), (date(max(timestamp))))) {
-        pltWeekStats(datKWH, timestamp, gridToBattery, nor, i)
+        pltWeekStats(data, timestamp, varSol, nor, i)
         nor =  nor + days(2)
         i = i + 1
     }
@@ -190,29 +190,15 @@ units = c('V', 'A', 'W')
 
 # intrval1 = c(min(datMeteo$timestamp) + days(7), min(datMeteo$timestamp) + hours(2))
 # intrval1 = c(min(datMeteo$timestamp), min(datMeteo$timestamp) + days(31))
-intrval1 = c(as_datetime("2019-01-21 07:00:00 UTC"), as_datetime("2019-01-21 07:00:00 UTC") + hours(10))
+intrval1 = c(as_datetime("2019-01-19 07:00:00 UTC"), as_datetime("2019-01-19 07:00:00 UTC") + hours(10))
 
+splains = spline(datMeteo$timestamp, datMeteo$solarIrradiance)
 
-# splains = smooth.spline(datMeteo$timestamp, datMeteo$solarIrradiance, spar = 0.1, all.knots=TRUE)
-# meteo = data.frame(datMeteo$timestamp, datMeteo$solarIrradiance)
-# ggplot(meteo,aes(meteo$datMeteo.timestamp, meteo$datMeteo.solarIrradiance)) + geom_point() +
-#     geom_line(data=data.frame(spline(meteo)))
-
-
-splains = smooth.spline(datMeteo$timestamp, datMeteo$solarIrradiance, spar = 0.001, all.knots=TRUE)
-
-plot.new()
-jpeg('spline.jpeg', width = 1000, height = 600, units = "px", pointsize = 15)
-plot(datMeteo$timestamp, datMeteo$solarIrradiance, col="gray40", xlab = "Time", ylab ="Solar irradiance, W/m2")
-lines(splains, col = "purple", lwd = 2)
-title(main = 'Meteo dati par janvāri', cex.main = 2, font.main= 4, col.main= "black")
-dev.off()
-
-
-ggplot(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) + geom_line(splains)
-
-# datMeteo %>% ggplot(aes(x = timestamp, y = solarIrradiance)) + geom_point() +
-#     sharedTheme  + coord_cartesian(xlim = intrval1) +
-#     geom_smooth(method="auto", formula=y~splines::ns(x,8)) +
-#     ggtitle("Meteo") + sharedAxis + ylab("Solar irradiance, W/m2")
-# ggsave("meteo.pdf", width = width, height = height, units = "cm")
+# Error: Aesthetics must be either length 1 or the same as the data (133920): x, y
+# possible solution - plot spline as data series
+# also need to convert x to asdatetime
+datMeteo %>% ggplot(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) + geom_point() +
+    sharedTheme +  coord_cartesian(xlim = intrval1) +
+    geom_line(data = data.frame(splains)) + 
+    ggtitle("Meteo") + sharedAxis + ylab("Solar irradiance, W/m2")
+ggsave("meteo.pdf", width = width, height = height, units = "cm")
