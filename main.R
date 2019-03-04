@@ -2,7 +2,7 @@
 library(ggplot2)
 library(lubridate)
 library(dplyr)
-# library(gridExtra) # combining 2 plots together in a grid
+library(gridExtra) # combining 2 plots together in a grid
 library(pracma)
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
@@ -178,6 +178,7 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
+# disable as it produces 60 plots and runs slow
 # for (solName in solNames){
 #     for (unit in units){
 #         for (device in devices){
@@ -188,17 +189,61 @@ units = c('V', 'A', 'W')
 #     }
 # }
 
-# intrval1 = c(min(datMeteo$timestamp) + days(7), min(datMeteo$timestamp) + hours(2))
-# intrval1 = c(min(datMeteo$timestamp), min(datMeteo$timestamp) + days(31))
-intrval1 = c(as_datetime("2019-01-19 07:00:00 UTC"), as_datetime("2019-01-19 07:00:00 UTC") + hours(10))
+intrval1 = c(as_datetime("2019-01-19 07:00:00 UTC"), as_datetime("2019-01-19 07:00:00 UTC") + hours(48))
 
-splains = spline(datMeteo$timestamp, datMeteo$solarIrradiance)
+
+spl_Meteo1 = spline(datMeteo$timestamp, datMeteo$solarIrradiance)
+spl_Meteo2 = smooth.spline(datMeteo$timestamp, datMeteo$solarIrradiance,spar = 1e-7, tol = 1e-2)
+
+plot.new()
+jpeg('splines2.jpeg', width = 1000, height = 600, units = "px", pointsize = 15)
+plot(datMeteo$timestamp, datMeteo$solarIrradiance, col="gray40", xlab = "Time", ylab ="Solar irradiance, W/m2")
+lines(spl_Meteo1, col = "purple", lwd = 2)
+lines(spl_Meteo2, col = "blue", lwd = 2)
+title(main = 'Meteo dati par janvāri', cex.main = 2, font.main= 4, col.main= "black")
+dev.off()
 
 # Error: Aesthetics must be either length 1 or the same as the data (133920): x, y
 # possible solution - plot spline as data series
 # also need to convert x to asdatetime
-datMeteo %>% ggplot(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) + geom_point() +
-    sharedTheme +  coord_cartesian(xlim = intrval1) +
-    geom_line(data = data.frame(splains)) + 
-    ggtitle("Meteo") + sharedAxis + ylab("Solar irradiance, W/m2")
-ggsave("meteo.pdf", width = width, height = height, units = "cm")
+# datMeteo %>% ggplot(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) + geom_point() +
+#     sharedTheme +  coord_cartesian(xlim = intrval1) +
+#     ggtitle("Meteo") + sharedAxis + ylab("Solar irradiance, W/m2")
+# ggsave("meteo.pdf", width = width, height = height, units = "cm")
+
+spl_Meteo1 = data.frame(spl_Meteo1)
+spl_Meteo1$x <- lubridate::as_datetime(spl_Meteo1$x)
+dplyr::arrange(spl_Meteo1, x)
+
+spl_Meteo2 = data.frame(x = spl_Meteo2$x, y = spl_Meteo2$y)
+spl_Meteo2$x <- lubridate::as_datetime(spl_Meteo2$x)
+dplyr::arrange(spl_Meteo2, x)
+
+plot0 <- datMeteo %>%
+    ggplot() +
+    geom_point(aes(x = datMeteo$timestamp, y = datMeteo$solarIrradiance)) +
+    ylab("Data") + coord_cartesian(xlim = intrval1) +
+    theme_minimal() +
+    theme(axis.title.x = element_blank())
+
+plot1 <- spl_Meteo1 %>%
+    ggplot() +
+    geom_line(aes(x = x, y = y), size = 0.5, alpha = 0.75) +
+    ylab("Spline") + coord_cartesian(xlim = intrval1) +
+    theme_minimal() +
+    theme(axis.title.x = element_blank())
+
+plot2 <- spl_Meteo2 %>%
+    ggplot() +
+    geom_line(aes(x = x, y = y), size = 0.5, alpha = 0.75) +
+    ylab("Smoothing spline") + coord_cartesian(xlim = intrval1) +
+    theme_minimal() +
+    theme(axis.title.x = element_blank())
+
+pdf('testSplines.pdf',
+    width=8,
+    height=9)
+grid.arrange(
+    arrangeGrob(plot0,plot1,plot2,nrow=3,heights=c(.3,.3,.4))
+)
+dev.off()
