@@ -4,6 +4,7 @@ library(lubridate)
 library(dplyr)
 library(gridExtra) # combining 2 plots together in a grid
 library(pracma)
+library(gridGraphics) # cheat solution for only 'grobs' allowed in "gList" error I found on stack exchange
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\"
 solNames = c("solD40", "solD13","solA13", "solR13", "solD90")
@@ -166,9 +167,11 @@ pltMonth = function(solName){
     height = 21.0
     
     solVar = datSol[, colIndex]
-    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
-        sharedTheme +  coord_cartesian(xlim = intrval1) +
-        ggtitle(paste(panelVerbose, intrval2)) + sharedAxis + ylab(labelSolVar)
+    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point()
+        # sharedTheme + 
+        # coord_cartesian(xlim = intrval1) +
+        # ggtitle(paste(panelVerbose, intrval2)) +
+        # sharedAxis + ylab(labelSolVar)
     # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
     return(plotSol)
 }
@@ -190,7 +193,15 @@ units = c('V', 'A', 'W')
 #     }
 # }
 
-plt = list() 
+# plt = list() 
+plt <- vector("list", 5)
+i = 1
+
+grab_grob <- function(){
+    grid.echo()
+    grid.grab()
+}
+
 
 for (device in devices){
     for (unit in units){
@@ -200,19 +211,38 @@ for (device in devices){
                 # print(solName)
                 # print(paste(solName, type, device, unit, sep=""))
                 plots = pltMonth(paste(solName, type, device, unit, sep=""))
-                plt = c(plt, plots)
+                plt[[i]] <- plots
+                i <- i + 1
             }
+
+            print("####################")
+            pdf(paste(type, device, unit, ".pdf", sep=""),
+                width=8,
+                height=15)
+            grid.arrange(
+                arrangeGrob(plt[1],plt[2],plt[3],plt[4],plt[5],nrow=5,heights=c(.2,.2,.2,.2,.2))
+            )
+            dev.off()
+            plt[] <- NULL
+            i = 0
+            
             # paste(device, unit, type, ".pdf", sep="")
-            # pdf(paste(device, unit, type, ".pdf", sep=""),
+            # g <- grab_grob()
+            # pdf(paste(type, device, unit, ".pdf", sep=""),
             #     width=8,
             #     height=15)
             # grid.arrange(
-            #     arrangeGrob(plt[1],plt[2],plt[3],plt[4],plt[5],nrow=5,heights=c(.2,.2,.2,.2))
+            #     # arrangeGrob(plt[1],plt[2],plt[3],plt[4],plt[5],nrow=5,heights=c(.2,.2,.2,.2,.2))
+            #     # arrangeGrob(plt[1],g,nrow=1,heights=c(.8))
             # )
             # dev.off()
-            # plt[] <- NULL 
+            # plt[] <- NULL
+            # i = 0
+            break
         }
+        break
     }
+    break
 }
 
 
