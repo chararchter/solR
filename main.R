@@ -166,10 +166,11 @@ pltMonth = function(solName){
     height = 21.0
     
     solVar = datSol[, colIndex]
-    datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
+    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
         sharedTheme +  coord_cartesian(xlim = intrval1) +
         ggtitle(paste(panelVerbose, intrval2)) + sharedAxis + ylab(labelSolVar)
-    ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
+    # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
+    return(plotSol)
 }
 
 pltMonth("solD40JA_BatV")
@@ -188,6 +189,31 @@ units = c('V', 'A', 'W')
 #         }
 #     }
 # }
+
+plt = list() 
+
+for (device in devices){
+    for (unit in units){
+        for (type in types){
+            for (solName in solNames){
+                # pltMonth(paste(solName, type, device, unit, sep=""))
+                # print(solName)
+                # print(paste(solName, type, device, unit, sep=""))
+                plots = pltMonth(paste(solName, type, device, unit, sep=""))
+                plt = c(plt, plots)
+            }
+            # paste(device, unit, type, ".pdf", sep="")
+            # pdf(paste(device, unit, type, ".pdf", sep=""),
+            #     width=8,
+            #     height=15)
+            # grid.arrange(
+            #     arrangeGrob(plt[1],plt[2],plt[3],plt[4],plt[5],nrow=5,heights=c(.2,.2,.2,.2))
+            # )
+            # dev.off()
+            # plt[] <- NULL 
+        }
+    }
+}
 
 
 # Error: Aesthetics must be either length 1 or the same as the data (133920): x, y
@@ -281,10 +307,10 @@ plot4 <- spl_Meteo4 %>%
 #     theme_minimal() +
 #     theme(axis.title.x = element_blank())
 
-pdf('testSplines.pdf',
-    width=8,
-    height=12)
-grid.arrange(
-    arrangeGrob(plot0,plot2,plot3,plot4,nrow=4,heights=c(.25,.25,.25,.25))
-)
-dev.off()
+# pdf('testSplines.pdf',
+#     width=8,
+#     height=12)
+# grid.arrange(
+#     arrangeGrob(plot0,plot2,plot3,plot4,nrow=4,heights=c(.25,.25,.25,.25))
+# )
+# dev.off()
