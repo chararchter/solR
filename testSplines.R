@@ -1,3 +1,4 @@
+function = drawSplines(datMeteo){
 ###########################
 #splines
 ###########################
@@ -88,3 +89,5 @@ grid.arrange(
     arrangeGrob(plot0,plot2,plot3,plot4,nrow=4,heights=c(.25,.25,.25,.25))
 )
 dev.off()
+
+}
