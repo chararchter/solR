@@ -67,29 +67,42 @@ pltMonth = function(solName){
     intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
     
+    print(labelSolVar)
     print(colIndex)
     print(solname)
-    print(panel)
+    # print(panel)
     
+    timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
-    print(head(solVar))
-    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
-        sharedTheme +
-        coord_cartesian(xlim = intrval1) +
-        sharedAxis + ylab(labelSolVar) + 
-        ggtitle(paste(panelVerbose, intrval2))
-    ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
     
-    plotSol2 = datSol %>% group_by(timestamp=floor_date(timestamp, "6 hours")) %>%
-        summarize(solVar=sum(solVar)) %>%
-        ggplot(aes(x = timestamp, y = solVar)) + geom_point() + sharedTheme + sharedAxis +
-        ggtitle(paste('Summary ', toString(interval(min(datSol$timestamp), min(datSol$timestamp) + months(1)))))
-        ggsave(paste("sol", panel, measurement, "sum.pdf",sep=""), width = width, height = height, units = "cm")
+    datTemp = data.frame(timestamp, solVar)
+    write.csv(datTemp, file = "datTemp.csv")
+    
+    # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
+    #     sharedTheme +
+    #     coord_cartesian(xlim = intrval1) +
+    #     sharedAxis + ylab(labelSolVar) +
+    #     ggtitle(paste(panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
+
+    
         
-    smry = datSol %>% group_by(timestamp=floor_date(timestamp, "6 hours")) %>%
-        summarize(solVar=sum(solVar))
-    print(smry)
-    return(solVar)
+    smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+        summarize(y2=sum(solVar))
+    
+    # datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+    #     summarize(y2=sum(solVar)) %>% 
+    # ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) + 
+    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
+    # 
+    # datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
+    #     summarize(y2=sum(solVar)) %>% 
+    #     ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) + 
+    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
+    
+    return(smry)
 }
 
 
@@ -103,20 +116,25 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
-solVar = pltMonth("solD40JA_BatV")
+# sumry = pltMonth("solD40JA_BatV")
+# print(sumry)
 
 # disable as it produces 60 plots and runs slow
-# for (solName in solNames){
-#     for (unit in units){
-#         for (device in devices){
-#             for (type in types){
-#                 print(paste(solName, type, device, unit, sep=""))
-#                 # pltMonth(paste(solName, type, device, unit, sep=""))
-#             }
-#             print("###################")
-#         }
-#     }
-# }
+for (solName in solNames){
+    for (unit in units){
+        for (device in devices){
+            for (type in types){
+                # print(paste(solName, type, device, unit, sep=""))
+                # pltMonth(paste(solName, type, device, unit, sep=""))
+                if (device == "_PV_" & unit == "W"){
+                    print("pls plot")
+                    pltMonth(paste(solName, type, device, unit, sep=""))
+                }
+            }
+            print("###################")
+        }
+    }
+}
 
 
 # plt <- vector("list", 5)
