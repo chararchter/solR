@@ -11,6 +11,11 @@ interpretSolPanel = function(solPanel){
     degree = searchPattern(solPanel, degrees)
     device = searchPattern(solPanel, devices)
     unit = searchPattern(solPanel, units)
+
+    if (device == 'PV'){
+        splitBy_ = strsplit(solPanel, "_")
+        unit = splitBy_[[1]][3]
+    }
     
     parameters <- c(dir, degree, type, device, unit)
     names(parameters) <- c("dir", "degree", "type", "device", "unit")
