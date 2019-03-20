@@ -66,17 +66,15 @@ pltMonth = function(solName){
     
     intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(31))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
-    
-    print(labelSolVar)
-    print(colIndex)
-    print(solname)
-    # print(panel)
-    
+
     timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
     
     datTemp = data.frame(timestamp, solVar)
-    write.csv(datTemp, file = "datTemp.csv")
+    # write.csv(datTemp, file = "datTemp.csv")
+
+    smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+        summarize(y2=sum(solVar))
     
     # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_point() +
     #     sharedTheme +
@@ -84,25 +82,22 @@ pltMonth = function(solName){
     #     sharedAxis + ylab(labelSolVar) +
     #     ggtitle(paste(panelVerbose, intrval2))
     # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
+    
+    datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+        summarize(y2=sum(solVar)) %>%
+    ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
+        ggtitle(paste("Summary:", panelVerbose, intrval2))
+    ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
 
+    datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
+        summarize(y2=sum(solVar)) %>%
+        ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
+        ggtitle(paste("Summary:", panelVerbose, intrval2))
+    ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
     
-        
-    smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
-        summarize(y2=sum(solVar))
-    
-    # datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
-    #     summarize(y2=sum(solVar)) %>% 
-    # ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) + 
-    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
-    # ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
-    # 
-    # datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
-    #     summarize(y2=sum(solVar)) %>% 
-    #     ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) + 
-    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
-    # ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
-    
-    return(smry)
+    # return(smry)
+    return(datTemp)
+    # return(c(datTemp, smry))
 }
 
 
@@ -116,58 +111,17 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
-# sumry = pltMonth("solD40JA_BatV")
-# print(sumry)
+sumry = pltMonth("solD40JA_PV_W")
+print(sumry)
 
 # disable as it produces 60 plots and runs slow
-for (solName in solNames){
-    for (unit in units){
-        for (device in devices){
-            for (type in types){
-                # print(paste(solName, type, device, unit, sep=""))
-                # pltMonth(paste(solName, type, device, unit, sep=""))
-                if (device == "_PV_" & unit == "W"){
-                    print("pls plot")
-                    pltMonth(paste(solName, type, device, unit, sep=""))
-                }
-            }
-            print("###################")
-        }
-    }
-}
-
-
-# plt <- vector("list", 5)
-# i = 1
-# 
-# grab_grob <- function(){
-#     grid.echo()
-#     grid.grab()
-# }
-
-# Error in gList(list(list(data = list(timestamp = c(1546294086, 1546294985,  : 
-                                                       # only 'grobs' allowed in "gList"
-# for (device in devices){
+# for (solName in solNames){
 #     for (unit in units){
-#         for (type in types){
-#             for (solName in solNames){
-#                 # pltMonth(paste(solName, type, device, unit, sep=""))
-#                 plots = pltMonth(paste(solName, type, device, unit, sep=""))
-#                 plt[[i]] <- plots
-#                 i <- i + 1
+#         for (device in devices){
+#             for (type in types){
+#                 # print(paste(solName, type, device, unit, sep=""))
+#                 pltMonth(paste(solName, type, device, unit, sep=""))
 #             }
-#             pdf(paste(type, device, unit, ".pdf", sep=""),
-#                 width=8,
-#                 height=15)
-#             grid.arrange(
-#                 arrangeGrob(plt[1],plt[2],plt[3],plt[4],plt[5],nrow=5,heights=c(.2,.2,.2,.2,.2))
-#             )
-#             dev.off()
-#             plt[] <- NULL
-#             i = 0
-#             break
 #         }
-#         break
 #     }
-#     break
 # }
