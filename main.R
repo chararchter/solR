@@ -41,7 +41,7 @@ if(!exists("whichMeasure", mode="function")) source("whichMeasure.R")
 datSol = importData("solar", "main", 3)
 datSol = fixDatetime(datSol)
 
-datMeteo = mergeData("meteo", "T000000")
+# datMeteo = mergeData("meteo", "T000000")
 
 
 #######################
@@ -94,7 +94,39 @@ pltMonth = function(solName){
         t = trapezoidArea(datTemp$timestamp, datTemp$solVar)
         kwHmonth = t /3600
         print(paste(solName,"    ", "kWh =", kwHmonth, sep = " "))
-        }
+        
+        timestamp = datSol$timestamp
+        nor = min(timestamp)
+        i = 0
+        
+        while (interval(nor, (nor + days(7))) %within% interval(min(timestamp), (max(timestamp)))) {
+            intrval1 = interval(nor, (nor + days(7)))
+            strtIntrval = nor
+            endIntrval = nor + days(7)
+            print("viens")
+            
+            # find closest value which exists in timestamp
+            if (as.POSIXct(strtIntrval) %in% timestamp == FALSE){
+                warning('Incorrect start parameter: choose one which exists in a timestamp vector')
+            }
+            if (as.POSIXct(endIntrval) %in% timestamp == FALSE){
+                warning('Incorrect end parameter: choose one which exists in a timestamp vector')
+            }
+            if (as.POSIXct(strtIntrval) %in% timestamp & as.POSIXct(endIntrval) %in% timestamp){
+                indeksi = match(c(as.POSIXct(strtIntrval),as.POSIXct(endIntrval)),timestamp)
+                datInt = datTemp[indeksi[1]:indeksi[2],]
+            }
+            
+            t = trapezoidArea(datInt$timestamp, datInt$solVar)
+            intLength = int_length(intrval1)
+            print(intLength)
+            
+            kwHweek = t /intLength
+            print(paste(solName,"    ", "kWh =", kwHweek, sep = " "))
+            
+            nor =  nor + days(7)
+            # i = i + 1
+            }     
     }
     
     smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
@@ -134,16 +166,13 @@ devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
 
-# kWhmonths = data.frame(solVar = 0, value = 0)
+# kWhmonth = data.frame(solVar = 0, value = 0)
 
 # sumry = pltMonth("solD40JA_PV_W")
 smry = pltMonth("solD40JA_PV_W")
 # print(smry)
 # 
 # kWhmonths <- rbind(kWhmonth, data.frame(x = kWhMonth[1], kWhMonth[2]))
-
-
-# print(sumry)
 
 # disable as it produces 60 plots and runs slow
 # for (solName in solNames){
