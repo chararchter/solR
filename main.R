@@ -71,7 +71,6 @@ trapezoidArea = function(x, y){
 }
 
 pltMonth = function(solName){
-    # there is a mistake in the next line. interpretSolPanel argument should change based on function argument but now it's static
     colIndex = which( colnames(datSol)==solName )
     solname = interpretSolPanel(solName)
     panel = paste(toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
@@ -79,8 +78,6 @@ pltMonth = function(solName){
     labelSolVar = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
     measurement = paste("_", solname["device"], solname["unit"], sep = "")
     
-    # x = min(datSol$timestamp) + days(21)
-    # intrval1 = c(x, x + days(1))
     intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(1))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
 
@@ -141,19 +138,15 @@ pltMonth = function(solName){
             # kwHweek = t /intLength
             # print(paste("Interval length in seconds", intLength))
             
-            # x[i] <- as_datetime(as.POSIXct(n2))
             x[i] <- datSol$timestamp[endIndex]
             y[i] <- kwHday
             
             nor =  nor + hours(24)
             i = i + 1
         }
-        # fakeTime <- seq.POSIXt(from=as.POSIXct("2019-01-02 00:00:00"), to=as.POSIXct("2019-01-31 00:00:00"), length.out = length(y))
-        
+       
         sumDays = data.frame(x, y)
         sumDays$x <- lubridate::as_date(sumDays$x)
-        # sumDays = data.frame(x, y)
-        # sumDays$x = as.POSIXct(strptime(sumDays$x, format="%Y-%m-%d"))
         print(countByDays)
         print(sumDays)
     }
@@ -166,7 +159,6 @@ pltMonth = function(solName){
         sharedAxis + ylab("kWh") +
         ggtitle(paste(panelVerbose, "kWh"))
     ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
-    
      
     # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
     #     sharedTheme +
@@ -191,24 +183,17 @@ pltMonth = function(solName){
 }
 
 
-
 ###########################
 # plots solar data
 ###########################
-
 
 types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
+pltMonth("solD40JA_PV_W")
+pltMonth("solD40LG_PV_W")
 
-# kWhmonth = data.frame(solVar = 0, value = 0)
-
-# sumry = pltMonth("solD40JA_PV_W")
-smry = pltMonth("solD40JA_PV_W")
-# print(smry)
-# 
-# kWhmonths <- rbind(kWhmonth, data.frame(x = kWhMonth[1], kWhMonth[2]))
 
 # disable as it produces 60 plots and runs slow
 # for (solName in solNames){
