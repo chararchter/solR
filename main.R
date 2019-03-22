@@ -1,7 +1,7 @@
 library(ggplot2)
 library(lubridate)
 library(dplyr)
-library(DescTools) # for trapezoid integrating
+# library(DescTools) # for trapezoid integrating
 # library(gridExtra) # combining 2 plots together in a grid
 # library(gridGraphics) # cheat solution for only 'grobs' allowed in "gList" error I found on stack exchange
 # library(pracma) # cubic spline
@@ -93,63 +93,51 @@ pltMonth = function(solName){
     if (solname["unit"]=="W"){
         t = trapezoidArea(datTemp$timestamp, datTemp$solVar)
         kwHmonth = t /3600
-        print(paste(solName,"    ", "kWh =", kwHmonth, sep = " "))
+        print(solName)
+        print(paste(interval(date(min(timestamp)), date(max(timestamp))),"   ", "kWh =", format(kwHmonth, digits = 2, nsmall=2), sep = " "))
         
-        timestamp = datSol$timestamp
-        nor = min(timestamp)
-        i = 0
+        nor = date(min(timestamp))
+        print("########")
         
-        while (interval(nor, (nor + days(7))) %within% interval(min(timestamp), (max(timestamp)))) {
-            intrval1 = interval(nor, (nor + days(7)))
-            strtIntrval = nor
-            endIntrval = nor + days(7)
-            print("viens")
-            
-            # find closest value which exists in timestamp
-            if (as.POSIXct(strtIntrval) %in% timestamp == FALSE){
-                warning('Incorrect start parameter: choose one which exists in a timestamp vector')
-            }
-            if (as.POSIXct(endIntrval) %in% timestamp == FALSE){
-                warning('Incorrect end parameter: choose one which exists in a timestamp vector')
-            }
-            if (as.POSIXct(strtIntrval) %in% timestamp & as.POSIXct(endIntrval) %in% timestamp){
-                indeksi = match(c(as.POSIXct(strtIntrval),as.POSIXct(endIntrval)),timestamp)
-                datInt = datTemp[indeksi[1]:indeksi[2],]
-            }
-            
+        while (interval(nor, nor + days(7)) %within% interval(nor, date(max(timestamp)))) {
+            n2 = nor + days(7)
+            strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(nor)))[1]
+            endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(n2)))[1]
+            datInt = datTemp[strtIndex:endIndex,]
+
             t = trapezoidArea(datInt$timestamp, datInt$solVar)
-            intLength = int_length(intrval1)
-            print(intLength)
-            
-            kwHweek = t /intLength
-            print(paste(solName,"    ", "kWh =", kwHweek, sep = " "))
+            kwHweek = t / 3600
+            print(paste(interval(nor, nor + days(7)),"   ", "kWh =", format(kwHweek, digits = 2, nsmall=2), sep = " "))
+        
+            intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
+            # kwHweek = t /intLength
+            # print(paste("Interval length in seconds", intLength))
             
             nor =  nor + days(7)
-            # i = i + 1
-            }     
+        }
     }
     
     smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
         summarize(y2=sum(solVar))
-    
-    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
-        sharedTheme +
-        coord_cartesian(xlim = intrval1) +
-        sharedAxis + ylab(labelSolVar) +
-        ggtitle(paste(panelVerbose, intrval2))
-    ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
-    
-    datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
-        summarize(y2=sum(solVar)) %>%
-    ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
-        ggtitle(paste("Summary:", panelVerbose, intrval2))
-    ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
-
-    datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
-        summarize(y2=sum(solVar)) %>%
-        ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
-        ggtitle(paste("Summary:", panelVerbose, intrval2))
-    ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
+    # 
+    # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
+    #     sharedTheme +
+    #     coord_cartesian(xlim = intrval1) +
+    #     sharedAxis + ylab(labelSolVar) +
+    #     ggtitle(paste(panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
+    # 
+    # datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+    #     summarize(y2=sum(solVar)) %>%
+    # ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
+    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
+    # 
+    # datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
+    #     summarize(y2=sum(solVar)) %>%
+    #     ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
+    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
+    # ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
     
     return(smry)
 }
