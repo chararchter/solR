@@ -70,6 +70,38 @@ trapezoidArea = function(x, y){
     return(t)
 }
 
+integrateInterval = function(lowerLimit, delta_t, datTemp){
+    upperLimit = lowerLimit + delta_t
+    x <- as_datetime(4)
+    y <- numeric(4)
+    count = 0
+    i = 0
+    timestamp = datTemp$timestamp
+    # debugg while interval statement
+    # Error in strtIndex:endIndex : NA/NaN argument happens after 4 runs
+    # maybe define x and y with variable and not 4, cuz they might be longer
+    while (interval(lowerLimit, upperLimit) %within% interval(lowerLimit, date(max(timestamp)))) {
+        upperLimit = lowerLimit + delta_t
+        strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(lowerLimit)))[1]
+        endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(upperLimit)))[1]
+        datInt = datTemp[strtIndex:endIndex,]
+
+        t = trapezoidArea(datInt$timestamp, datInt$solVar)
+        kwHday = t / 3600
+        count = count + kwHday
+        print(paste(interval(lowerLimit, upperLimit),"   ", "kWh =", format(kwHday, digits = 2, nsmall=2), sep = " "))
+
+        intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
+
+        x[i] <- datSol$timestamp[endIndex]
+        y[i] <- kwHday
+
+        lowerLimit =  upperLimit
+        i = i + 1
+    }
+    sumInt = data.frame("time" = x, "sumkWh" = y)
+}
+
 pltMonth = function(solName){
     colIndex = which( colnames(datSol)==solName )
     solname = interpretSolPanel(solName)
@@ -80,13 +112,13 @@ pltMonth = function(solName){
     
     intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(1))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
-
+    
     timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
     
     datTemp = data.frame(timestamp, solVar)
     # write.csv(datTemp, file = "datTemp.csv")
-
+    
     if (solname["unit"]=="W"){
         t = trapezoidArea(datTemp$timestamp, datTemp$solVar)
         kwHmonth = t /3600
@@ -96,70 +128,72 @@ pltMonth = function(solName){
         nor = date(min(timestamp))
         countByWeeks = 0
         print("########")
+        print(nor)
+        integrateInterval(nor, days(7), datTemp)
         # Integrate with week intervals
-        while (interval(nor, nor + days(7)) %within% interval(nor, date(max(timestamp)))) {
-            n2 = nor + days(7)
-            strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(nor)))[1]
-            endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(n2)))[1]
-            datInt = datTemp[strtIndex:endIndex,]
-
-            t = trapezoidArea(datInt$timestamp, datInt$solVar)
-            kwHweek = t / 3600
-            countByWeeks = countByWeeks + kwHweek
-            print(paste(interval(nor, nor + days(7)),"   ", "kWh =", format(kwHweek, digits = 2, nsmall=2), sep = " "))
-        
-            intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
-            # kwHweek = t /intLength
-            # print(paste("Interval length in seconds", intLength))
-            
-            nor =  nor + days(7)
-        }
-        print(countByWeeks)
-        
-        nor = date(min(timestamp))
-        countByDays = 0
-        i = 0
-        x <- as_datetime(4)
-        y <- numeric(4)
-
-        print("########")
-        while (interval(nor, nor + hours(24)) %within% interval(nor, date(max(timestamp)))) {
-            n2 = nor + hours(24)
-            strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(nor)))[1]
-            endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(n2)))[1]
-            datInt = datTemp[strtIndex:endIndex,]
-            
-            t = trapezoidArea(datInt$timestamp, datInt$solVar)
-            kwHday = t / 3600
-            countByDays = countByDays + kwHday
-            print(paste(interval(nor, n2),"   ", "kWh =", format(kwHday, digits = 2, nsmall=2), sep = " "))
-            
-            intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
-            # kwHweek = t /intLength
-            # print(paste("Interval length in seconds", intLength))
-            
-            x[i] <- datSol$timestamp[endIndex]
-            y[i] <- kwHday
-            
-            nor =  nor + hours(24)
-            i = i + 1
-        }
-       
-        sumDays = data.frame(x, y)
-        sumDays$x <- lubridate::as_date(sumDays$x)
-        print(countByDays)
-        print(sumDays)
+    #     while (interval(nor, nor + days(7)) %within% interval(nor, date(max(timestamp)))) {
+    #         n2 = nor + days(7)
+    #         strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(nor)))[1]
+    #         endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(n2)))[1]
+    #         datInt = datTemp[strtIndex:endIndex,]
+    #         
+    #         t = trapezoidArea(datInt$timestamp, datInt$solVar)
+    #         kwHweek = t / 3600
+    #         countByWeeks = countByWeeks + kwHweek
+    #         print(paste(interval(nor, nor + days(7)),"   ", "kWh =", format(kwHweek, digits = 2, nsmall=2), sep = " "))
+    #         
+    #         intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
+    #         # kwHweek = t /intLength
+    #         # print(paste("Interval length in seconds", intLength))
+    #         
+    #         nor =  nor + days(7)
+    #     }
+    #     print(countByWeeks)
+    #     
+    #     nor = date(min(timestamp))
+    #     countByDays = 0
+    #     i = 0
+    #     x <- as_datetime(4)
+    #     y <- numeric(4)
+    #     
+    #     print("########")
+    #     while (interval(nor, nor + hours(24)) %within% interval(nor, date(max(timestamp)))) {
+    #         n2 = nor + hours(24)
+    #         strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(nor)))[1]
+    #         endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(n2)))[1]
+    #         datInt = datTemp[strtIndex:endIndex,]
+    #         
+    #         t = trapezoidArea(datInt$timestamp, datInt$solVar)
+    #         kwHday = t / 3600
+    #         countByDays = countByDays + kwHday
+    #         print(paste(interval(nor, n2),"   ", "kWh =", format(kwHday, digits = 2, nsmall=2), sep = " "))
+    #         
+    #         intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
+    #         # kwHweek = t /intLength
+    #         # print(paste("Interval length in seconds", intLength))
+    #         
+    #         x[i] <- datSol$timestamp[endIndex]
+    #         y[i] <- kwHday
+    #         
+    #         nor =  nor + hours(24)
+    #         i = i + 1
+    #     }
+    #     
+    #     sumDays = data.frame(x, y)
+    #     sumDays$x <- lubridate::as_date(sumDays$x)
+    #     print(countByDays)
+    #     print(sumDays)
     }
     
     smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
         summarize(y2=sum(solVar))
     
-    plotDaykWh <- sumDays %>% ggplot(aes(x = x, y = y)) + geom_point() +
-        sharedTheme +
-        sharedAxis + ylab("kWh") +
-        ggtitle(paste(panelVerbose, "kWh"))
-    ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
-     
+    # plotDaykWh <- sumDays %>% ggplot(aes(x = x, y = y)) + geom_point() +
+    #     sharedTheme +
+    #     sharedAxis + ylab("kWh") +
+    #     ggtitle(paste(panelVerbose, "kWh"))
+    # ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+    
     # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
     #     sharedTheme +
     #     coord_cartesian(xlim = intrval1) +
@@ -192,8 +226,9 @@ devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
 pltMonth("solD40JA_PV_W")
-pltMonth("solD40LG_PV_W")
-
+# pltMonth("solD40LG_PV_W")
+# pltMonth("solD90JA_PV_W")
+# pltMonth("solD90LG_PV_W")
 
 # disable as it produces 60 plots and runs slow
 # for (solName in solNames){
