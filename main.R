@@ -112,7 +112,7 @@ integrateInterval = function(lowerLimit, delta_t, datTemp){
     return(sumInt)
 }
 
-pltSum = function(datTemp, solname, panel, panelVerbose, measurement){
+pltSum = function(datTemp, solname, var){
     # Input - solname["unit"]
     # Output - plots of sumkwh values for week and month for each individual solar panel
     timestamp = datTemp$timestamp
@@ -128,59 +128,71 @@ pltSum = function(datTemp, solname, panel, panelVerbose, measurement){
     plotDaykWh <- sumDays %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
         sharedTheme +
         sharedAxis + ylab("kWh") +
-        ggtitle(paste(panelVerbose, "kWh"))
-    ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+        ggtitle(paste(var["panelVerbose"], "kWh"))
+    ggsave(paste("sol", var["panel"], var["measurement"], "kwh.pdf",sep=""), width = width, height = height, units = "cm")
     
     plotWeekkWh <- sumWeeks %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
         sharedTheme +
         sharedAxis + ylab("kWh") +
-        ggtitle(paste(panelVerbose, "kWh"))
-    ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+        ggtitle(paste(var["panelVerbose"], "kWh"))
+    ggsave(paste("sol", var["panel"], var["measurement"], "kwh.pdf",sep=""), width = width, height = height, units = "cm")
 }
 
 
-pltMonth = function(solName){
-    colIndex = which( colnames(datSol)==solName )
-    solname = interpretSolPanel(solName)
+produceStr = function(solname){
+    # Input - solname already deciphered by interpretSolPanel
+    # Output - combines useful strings of different solName parts to be used as titles, axis, and logical tests
     panel = paste(toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
     panelVerbose = paste("Solar panel ", panel, sep = "")
     labelSolVar = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
     measurement = paste("_", solname["device"], solname["unit"], sep = "")
     
+    parameters = c(panel, panelVerbose, labelSolVar, measurement)
+    names(parameters) = c("panel", "panelVerbose", "labelSolVar", "measurement")
+    return(parameters)
+}
+
+
+
+pltMonth = function(solName){
+    colIndex = which( colnames(datSol)==solName )
+    solname = interpretSolPanel(solName)
+    var = produceStr(solname)
+    
     intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(1))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
-    
+
     timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
     datTemp = data.frame(timestamp, solVar)
-    
+
     if (solname["unit"]=="W"){
-        pltSum(datTemp, solname, panel, panelVerbose, measurement)
+        pltSum(datTemp, solname, var)
     }
-    
+
     smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
         summarize(y2=sum(solVar))
+
+    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
+        sharedTheme +
+        coord_cartesian(xlim = intrval1) +
+        sharedAxis + ylab(var["labelSolVar"]) +
+        ggtitle(paste(var["panelVerbose"], intrval2))
+    ggsave(paste("sol", var["panel"], var["measurement"], ".pdf",sep=""), width = width, height = height, units = "cm")
+
+    datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
+        summarize(y2=sum(solVar)) %>%
+    ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(var["labelSolVar"]) +
+        ggtitle(paste("Summary:", var["panelVerbose"], intrval2))
+    ggsave(paste("sol", var["panel"], var["measurement"], "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
+
+    datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
+        summarize(y2=sum(solVar)) %>%
+        ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(var["labelSolVar"]) +
+        ggtitle(paste("Summary:", var["panelVerbose"], intrval2))
+    ggsave(paste("sol", var["panel"], var["measurement"], "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
     
-    # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
-    #     sharedTheme +
-    #     coord_cartesian(xlim = intrval1) +
-    #     sharedAxis + ylab(labelSolVar) +
-    #     ggtitle(paste(panelVerbose, intrval2))
-    # ggsave(paste("sol", panel, measurement, ".pdf",sep=""), width = width, height = height, units = "cm")
-    # 
-    # datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
-    #     summarize(y2=sum(solVar)) %>%
-    # ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
-    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
-    # ggsave(paste("sol", panel, measurement, "sumDay.pdf",sep=""), width = width, height = height, units = "cm")
-    # 
-    # datTemp %>% group_by(x2=floor_date(timestamp, "1 week")) %>%
-    #     summarize(y2=sum(solVar)) %>%
-    #     ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(labelSolVar) +
-    #     ggtitle(paste("Summary:", panelVerbose, intrval2))
-    # ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
-    
-    return(smry)
+    # return(smry)
     # return(sumDays)
 }
 
