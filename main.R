@@ -112,6 +112,33 @@ integrateInterval = function(lowerLimit, delta_t, datTemp){
     return(sumInt)
 }
 
+pltSum = function(datTemp, solname, panel, panelVerbose, measurement){
+    # Input - solname["unit"]
+    # Output - plots of sumkwh values for week and month for each individual solar panel
+    timestamp = datTemp$timestamp
+    t = trapezoidArea(timestamp, datTemp$solVar)
+    kwHmonth = t /3600
+    print(solname)
+    print("Reference for a month")
+    print(paste(interval(date(min(timestamp)), date(max(timestamp))),"   ", "kWh =", format(kwHmonth, digits = 2, nsmall=2), sep = " "))
+    
+    sumDays = integrateInterval(date(min(timestamp)), days(1), datTemp)
+    sumWeeks = integrateInterval(date(min(timestamp)), days(7), datTemp)
+    
+    plotDaykWh <- sumDays %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
+        sharedTheme +
+        sharedAxis + ylab("kWh") +
+        ggtitle(paste(panelVerbose, "kWh"))
+    ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+    
+    plotWeekkWh <- sumWeeks %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
+        sharedTheme +
+        sharedAxis + ylab("kWh") +
+        ggtitle(paste(panelVerbose, "kWh"))
+    ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+}
+
+
 pltMonth = function(solName){
     colIndex = which( colnames(datSol)==solName )
     solname = interpretSolPanel(solName)
@@ -127,37 +154,12 @@ pltMonth = function(solName){
     solVar = datSol[, colIndex]
     datTemp = data.frame(timestamp, solVar)
     
-    
     if (solname["unit"]=="W"){
-        t = trapezoidArea(datTemp$timestamp, datTemp$solVar)
-        kwHmonth = t /3600
-        print(solName)
-        print(paste(interval(date(min(timestamp)), date(max(timestamp))),"   ", "kWh =", format(kwHmonth, digits = 2, nsmall=2), sep = " "))
-        
-        sumDays = integrateInterval(date(min(timestamp)), days(1), datTemp)
-        sumWeeks = integrateInterval(date(min(timestamp)), days(7), datTemp)
-        
-        plotDaykWh <- sumDays %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
-            sharedTheme +
-            sharedAxis + ylab("kWh") +
-            ggtitle(paste(panelVerbose, "kWh"))
-        ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
-        
-        plotWeekkWh <- sumWeeks %>% ggplot(aes(x = time, y = sumkWh)) + geom_point() +
-            sharedTheme +
-            sharedAxis + ylab("kWh") +
-            ggtitle(paste(panelVerbose, "kWh"))
-        ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
+        pltSum(datTemp, solname, panel, panelVerbose, measurement)
     }
     
     smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
         summarize(y2=sum(solVar))
-    
-    # plotDaykWh <- sumDays %>% ggplot(aes(x = x, y = y)) + geom_point() +
-    #     sharedTheme +
-    #     sharedAxis + ylab("kWh") +
-    #     ggtitle(paste(panelVerbose, "kWh"))
-    # ggsave(paste("sol", panel, measurement, "kwh.pdf",sep=""), width = width, height = height, units = "cm")
     
     # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
     #     sharedTheme +
@@ -178,8 +180,8 @@ pltMonth = function(solName){
     #     ggtitle(paste("Summary:", panelVerbose, intrval2))
     # ggsave(paste("sol", panel, measurement, "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
     
-    # return(smry)
-    return(sumDays)
+    return(smry)
+    # return(sumDays)
 }
 
 
