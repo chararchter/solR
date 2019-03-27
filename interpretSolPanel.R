@@ -1,4 +1,8 @@
 interpretSolPanel = function(solPanel){
+    # Input - string with parameter names integrated
+    # Output - vector with split parameter names
+    # Description - parses string by matching parameters
+    
     #define possible patterns
     directions = c('D','A', 'R')
     types = c('JA','LG')
