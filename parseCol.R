@@ -62,3 +62,16 @@ whichMeasure = function(unit){
     if (unit == "W")
         return(" power")
 }
+
+produceStr = function(solname){
+    # Input - solname after interpretSolPanel(solName)
+    # Output - combines useful strings of different solName parts to be used as titles, axis, and logical tests
+    panel = paste(toString(solname["dir"]), toString(solname["degree"]), toString(solname["type"]), sep = "")
+    panelVerbose = paste("Solar panel ", panel, sep = "")
+    labelSolVar = paste(whichDevice(solname["device"]), whichMeasure(solname["unit"]), ", ", solname["unit"], sep = "")
+    measurement = paste("_", solname["device"], solname["unit"], sep = "")
+    
+    parameters = c(panel, panelVerbose, labelSolVar, measurement)
+    names(parameters) = c("panel", "panelVerbose", "labelSolVar", "measurement")
+    return(parameters)
+}
