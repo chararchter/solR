@@ -16,11 +16,9 @@ height = 21.0
 #######################
 
 setwd(paste(default, "code\\", sep=""))
-
 source("colNames.R")
 source("processData.R")
 source("parseCol.R")
-# source("week.R")
 source("integrate.R")
 
 #######################
@@ -30,11 +28,10 @@ source("integrate.R")
 # datKWH = importData("solar", "kwh", 2)
 # datKWH = fixDatetime(datKWH)
 
-datSol = importData("solar", "main", 3)
-datSol = fixDatetime(datSol)
-
 # datMeteo = mergeData("meteo", "T000000")
 
+datSol = importData("solar", "main", 3)
+datSol = fixDatetime(datSol)
 
 #######################
 # plots
@@ -54,26 +51,22 @@ pltMonth = function(solName){
     
     var = produceStr(solname)
     
-    # intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(1))
-    # intrval2 = toString(interval(intrval1[1], intrval1[2]))
-    
-    intrval1 = c(min(datSol$timestamp) + days(28), min(datSol$timestamp) + days(29))
+    intrval1 = c(min(datSol$timestamp), min(datSol$timestamp) + days(7))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
 
     timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
     datTemp = data.frame(timestamp, solVar)
 
-    # smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
-    #     summarize(y2=sum(solVar))
+    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
+        sharedTheme +
+        coord_cartesian(xlim = intrval1) +
+        sharedAxis + ylab(var["labelSolVar"]) +
+        ggtitle(paste(var["panelVerbose"], intrval2))
+    ggsave(paste("sol", var["panel"], var["measurement"], ".pdf",sep=""),
+           width = width, height = height, units = "cm")
     
-    # plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
-    #     sharedTheme +
-    #     coord_cartesian(xlim = intrval1) +
-    #     sharedAxis + ylab(var["labelSolVar"]) +
-    #     ggtitle(paste(var["panelVerbose"], intrval2))
-    # ggsave(paste("sol", var["panel"], var["measurement"], ".pdf",sep=""), width = width, height = height, units = "cm")
-    # 
+    # Summarize function
     # smry = datTemp %>% group_by(x2=floor_date(timestamp, "1 day")) %>%
     #     summarize(y2=sum(solVar))
     # 
@@ -88,7 +81,6 @@ pltMonth = function(solName){
     #     ggplot(aes(x = x2, y = y2)) + geom_point() + sharedTheme + sharedAxis + ylab(var["labelSolVar"]) +
     #     ggtitle(paste("Summary:", var["panelVerbose"], intrval2))
     # ggsave(paste("sol", var["panel"], var["measurement"], "sumWeek.pdf",sep=""), width = width, height = height, units = "cm")
-    
     return(datTemp)
 }
 
@@ -123,15 +115,6 @@ if (solname["unit"]=="W"){
     sumWeek = integrateInterval(date(min(datTemp$timestamp)), days(1), datTemp, testsolName)
     print(kWhMonth)
 }
-
-# sumWeeks
-# if (solname["unit"]=="W"){
-#     ergh = pltSum(datTemp, "solD40JA_PV_W")
-# }
-
-# print(produceStr(interpretSolPanel("solD40JA_PV_W")))
-# pltMonth("solD40LG_PV_W")
-
 
 # disable as it produces 60 plots and runs slow
 # for (solName in solNames){
@@ -255,4 +238,3 @@ if (solname["unit"]=="W"){
 #     geom_blank() +
 #     xlab("Day") +
 #     ylab("kWh")
-
