@@ -6,10 +6,13 @@ trapezoidArea = function(x, y){
     s = 0
     
     for (i in 1:(length(x)-1)){
-        deltx = x[i+1] - x[i]
+        deltx = as.numeric(difftime(x[i+1], + x[i], unit="secs"))
         yvid = (y[i] + y[i+1])/2
         s[i] = deltx * yvid
         t = t+s[i]
+        # print(paste("delta x    ", deltx, sep=""))
+        # print(paste("vid y    ", yvid, sep=""))
+        # print(paste("s[i]    ", s[i], sep=""))
     }
     return(t)
 }
