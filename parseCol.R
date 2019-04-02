@@ -1,17 +1,3 @@
-searchPattern = function(name, parameter){
-	# Input
-	# 	name - string to be parsed e.g. "solD90LG_PV_W"
-	# 	parameter - vector with all possible parameters of a name component for which to search for
-	# Output - one parameter which is defined in the name
-    for (char in 1:length(name)){
-        for (i in 1:length(parameter)){
-            if (grepl(parameter[i], name[char])){
-                return(parameter[i])
-            }
-        }
-    }
-}
-
 interpretSolPanel = function(solPanel){
     # Input - string with parameter names integrated
     # Output - vector with split parameter names
@@ -19,21 +5,17 @@ interpretSolPanel = function(solPanel){
     
     #define possible patterns
 	# e.g. vector 'directions' define all possible direction patterns: 'D','A', 'R'
-    directions = c('D','A', 'R')
-    types = c('JA','LG')
-    degrees = c('13', '40', '90')
-    devices = c('Bat', 'PV')
-    units = c('V', 'A', 'W')
+    dir = substr(solname, 4, 4)
+    type = substr(solname, 7, 8)
+    degree = substr(solname, 5, 6)
+    device = substr(solname, 10, 10)
+    unit = substr(solname, 13, 13)
     
-    dir = searchPattern(solPanel, directions)
-    type = searchPattern(solPanel, types)
-    degree = searchPattern(solPanel, degrees)
-    device = searchPattern(solPanel, devices)
-    unit = searchPattern(solPanel, units)
-
-    if (device == 'PV'){
-        splitBy_ = strsplit(solPanel, "_")
-        unit = splitBy_[[1]][3]
+    if (device == "P"){
+        device = substr(solname, 10, 11)
+    }
+    if (device == "B"){
+        device = substr(solname, 10, 12)
     }
     
     parameters <- c(dir, degree, type, device, unit)
