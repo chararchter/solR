@@ -4,10 +4,17 @@ howMuchFiles = function(whichData){
     return(lstData)
 }
 
+# importData = function(whichData, id, skipCount){
+#     setwd(paste(default, "data\\", whichData, "\\", sep=""))
+#     data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = skipCount,
+#                     header = FALSE, col.names = colNames(id), sep = ",")
+#     return(data)
+# }
+
 importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
-    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = skipCount,
-                    header = FALSE, col.names = colNames(id), sep = ",")
+    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = 0,
+                    header = TRUE, col.names = colNames(id), sep = ",")
     return(data)
 }
 
