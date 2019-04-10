@@ -4,17 +4,24 @@ howMuchFiles = function(whichData){
     return(lstData)
 }
 
+# importData = function(whichData, id, skipCount){
+#     setwd(paste(default, "data\\", whichData, "\\", sep=""))
+#     data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = skipCount,
+#                     header = FALSE, col.names = colNames(id), sep = ",")
+#     return(data)
+# }
+
 importData = function(whichData, id, skipCount){
     setwd(paste(default, "data\\", whichData, "\\", sep=""))
-    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE), skip = skipCount,
-                    header = FALSE, col.names = colNames(id), sep = ",")
+    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE),
+                    header = FALSE, sep = ",")
     return(data)
 }
 
 
 fixDatetime = function(data){
     # convert timestamp class from factor to POSIXct
-    data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
+    # data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
     # replace NA values with 0
     data[is.na(data)] = 0
     return(data)
