@@ -52,8 +52,21 @@ datSol = datSol[65:nrow(datSol),]
 datSol = apply(datSol, 2, function(x) gsub("^$|^ $", NA, x))
 
 datSol = fixDatetime(datSol)
-# print(head(datSol))
+datSol[, "timestamp"] = as.numeric(datSol[, "timestamp"])
+print(head(datSol))
 
+
+datSol = data.frame("timestamp" = as.numeric(datSol[, "timestamp"]),
+                 "solD13JA_PV_W" = as.numeric(datSol[, "solD13JA_PV_W"]),
+                 "solD13LG_PV_W" = as.numeric(datSol[, "solD13LG_PV_W"]),
+                 "solD40JA_PV_W" = as.numeric(datSol[, "solD40JA_PV_W"]),
+                 "solD40LG_PV_W" = as.numeric(datSol[, "solD40LG_PV_W"]),
+                 "solD90JA_PV_W" = as.numeric(datSol[, "solD90JA_PV_W"]),
+                 "solD90LG_PV_W" = as.numeric(datSol[, "solD90LG_PV_W"]),
+                 "solA13JA_PV_W" = as.numeric(datSol[, "solA13JA_PV_W"]),
+                 "solA13LG_PV_W" = as.numeric(datSol[, "solA13LG_PV_W"]),
+                 "solR13JA_PV_W" = as.numeric(datSol[, "solR13JA_PV_W"]),
+                 "solR13LG_PV_W" = as.numeric(datSol[, "solR13LG_PV_W"]) )
 
 #######################
 # plots
@@ -72,10 +85,12 @@ pltMonth = function(solName){
     print(solname)
     
     var = produceStr(solname)
-    intrval1 = c(min(datSol$timestamp) + days(30) + hours(8), min(datSol$timestamp) + days(31) - hours(3))
+    strt = min(datSol[,"timestamp"])
+    strt = as.numeric(strt)
+    intrval1 = c(strt + days(30) + hours(8), strt + days(31) - hours(3))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
 
-    timestamp = datSol$timestamp
+    timestamp = datSol[,"timestamp"]
     solVar = datSol[, colIndex]
     datTemp = data.frame(timestamp, solVar)
 
