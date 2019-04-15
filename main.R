@@ -312,7 +312,7 @@ write.csv(sumwh, file = "sumWhm2_feb.csv")
 
 write.csv(sumDays, file = "sumDays_feb.csv")
 write.csv(sumWeeks, file = "sumWeeks_feb.csv")
-write.csv(datSol, file = "datSol_mar.feb")
+write.csv(datSol, file = "datSol_feb.csv")
 
 # # week
 # p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
