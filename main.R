@@ -26,41 +26,11 @@ source("integrate.R")
 # import data
 #######################
 
-cipher = read.csv("numToCol.csv", header = TRUE, sep = ",")
-
-# datSol = importData("solar", "main", 3)
-# datSol = fixDatetime(datSol)
-
-# atlasīt rindiņas, kurās daļa vārda ir Solar charger
 datSol = importDataRaw("solar", "main")
-
-indxSubSol = list()
-j = 1
-for (i in 1:ncol(datSol)){
-    if (grepl("Solar.Charger",datSol[1,i])){
-        if (datSol[2,i] == "PV power"){
-            indxSubSol[[j]] = i
-            j = j + 1
-        }
-    }
-}
-
-subSol = datSol[,unlist(indxSubSol)]
-
-col_headings = list()
-col_headings[[1]] = "timestamp"
-for (i in 1:ncol(subSol)){
-    splitBy_ = strsplit(toString(subSol[1,i]), " ")
-    numOfPanel = splitBy_[[1]][3]
-    indxOfPanel = match(numOfPanel, cipher$numCharger)
-    col_headings[[i+1]] = toString(cipher$newColName[indxOfPanel])
-}
-
-col_headings = unlist(col_headings)
-subSol = bind_cols(datSol[1], subSol)
-colnames(subSol) <- col_headings
-
-
+indxSubSol = findSolChargerCol(datSol)
+subSol = datSol[,indxSubSol] # subset of datSol with Solar Charger & PV power columns
+subSol = renameSubSol(subSol, datSol[1])
+subSol = fixDatetime(subSol)
 
 #######################
 # plots

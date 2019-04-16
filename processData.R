@@ -18,6 +18,44 @@ importDataRaw = function(whichData, id){
     return(data)
 }
 
+findSolChargerCol = function(datSol){
+    # Input - datSol data frame
+    # Output - vector of column indices where in the native header
+    # Solar Charger & PV power == TRUE
+    indxSubSol = list()
+    j = 1
+    for (i in 1:ncol(datSol)){
+        if (grepl("Solar.Charger",datSol[1,i])){
+            if (datSol[2,i] == "PV power"){
+                indxSubSol[[j]] = i
+                j = j + 1
+            }
+        }
+    }
+    return(unlist(indxSubSol))
+}
+
+renameSubSol = function(subSol, timestamp){
+    # Input - subSol data frame
+    # Output - subSol data frame with code consistent headers
+    setwd(paste(default, "data\\solar\\", sep=""))
+    cipher = read.csv("numToCol.csv", header = TRUE, sep = ",")
+    col_headings = list()
+    col_headings[[1]] = "timestamp"
+    for (i in 1:ncol(subSol)){
+        splitBy_ = strsplit(toString(subSol[1,i]), " ")
+        numOfPanel = splitBy_[[1]][3]
+        indxOfPanel = match(numOfPanel, cipher$numCharger)
+        col_headings[[i+1]] = toString(cipher$newColName[indxOfPanel])
+    }
+    
+    col_headings = unlist(col_headings)
+    subSol = bind_cols(timestamp, subSol)
+    colnames(subSol) <- col_headings
+    # remove native headers
+    subSol = subSol[4:nrow(subSol),]
+    return(subSol)
+}
 
 fixDatetime = function(data){
     # convert timestamp class from factor to POSIXct
