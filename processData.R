@@ -11,6 +11,13 @@ importData = function(whichData, id, skipCount){
     return(data)
 }
 
+importDataRaw = function(whichData, id){
+    setwd(paste(default, "data\\", whichData, "\\", sep=""))
+    data = read.csv(grep(id, howMuchFiles(whichData), value = TRUE),
+                    header = FALSE, sep = ",")
+    return(data)
+}
+
 
 fixDatetime = function(data){
     # convert timestamp class from factor to POSIXct
