@@ -122,6 +122,30 @@ sumWeeks = sumWeeks[, -ind]
 # cumulative integral
 cumSumDays = cumsum(sumDays[,2:ncol(sumDays)])
 cumSumWeeks = cumsum(sumWeeks[,2:ncol(sumWeeks)])
+cumSumDays = bind_cols(sumDays[1], cumSumDays)
+cumSumWeeks = bind_cols(sumWeeks[1], cumSumWeeks)
 
-setwd(paste(default, "code\\", sep=""))
-source("plots.R")
+sumDays2 = data.frame("day"=sumDays$day, "panel"=rep("D40JA", each=nrow(sumDays)), "Wh"=sumDays$D40JA)
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D40LG", each=nrow(sumDays)), "Wh"=sumDays$D40LG))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D13JA", each=nrow(sumDays)), "Wh"=sumDays$D13JA))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D13LG", each=nrow(sumDays)), "Wh"=sumDays$D13LG))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("A13JA", each=nrow(sumDays)), "Wh"=sumDays$A13JA))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("A13LG", each=nrow(sumDays)), "Wh"=sumDays$A13LG))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("R13JA", each=nrow(sumDays)), "Wh"=sumDays$R13JA))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("R13LG", each=nrow(sumDays)), "Wh"=sumDays$R13LG))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90JA", each=nrow(sumDays)), "Wh"=sumDays$D90JA))
+sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90LG", each=nrow(sumDays)), "Wh"=sumDays$D90LG))
+as.factor(sumDays2$panel)
+
+
+colJA = c("#ADA8BE", "#9395D3", "#8D86C9", "#9888A5", "#A1E082")
+names(colJA) <- c("R13JA", "D13JA", "D40JA", "D90JA", "A13JA")
+
+colLG = c("#1C3738", "#6874E8", "#725AC1", "#392F5A", "#3DA35D")
+names(colLG) <- c("R13LG", "D13LG", "D40LG", "D90LG", "A13LG")
+
+colPan <- append(colJA, colLG)
+
+
+# setwd(paste(default, "code\\", sep=""))
+# source("plots.R")
