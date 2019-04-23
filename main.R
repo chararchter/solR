@@ -26,11 +26,16 @@ source("integrate.R")
 # import data
 #######################
 
-datSol = importDataRaw("solar", "main")
-indxSubSol = findSolChargerCol(datSol)
-subSol = datSol[,indxSubSol] # subset of datSol with Solar Charger & PV power columns
-subSol = renameSubSol(subSol, datSol[1])
-subSol = fixDatetime(subSol)
+datSol = importData("solar", "main", 3)
+datSol = fixDatetime(datSol)
+
+# datSol = importDataRaw("solar", "main")
+# indxSubSol = findSolChargerCol(datSol)
+# subSol = datSol[,indxSubSol] # subset of datSol with Solar Charger & PV power columns
+# subSol = renameSubSol(subSol, datSol[1])
+# subSol = apply(subSol, 2, function(x) gsub("^$|^ $", NA, x)) # change empty values to NA
+# subSol = as.data.frame(subSol)
+# subSol = fixDatetime(subSol)
 
 #######################
 # plots
@@ -46,23 +51,30 @@ sharedAxis = xlab("Time")
 pltMonth = function(solName){
     colIndex = which( colnames(datSol)==solName )
     solname = interpretSolPanel(solName)
-    print(solname)
-    
+    # print(solname)
+    # print(colIndex)
+
     var = produceStr(solname)
-    intrval1 = c(min(datSol$timestamp) + days(29) + hours(8), min(datSol$timestamp) + days(30) - hours(7))
+    # print(var)
+    intrval1 = c(min(datSol$timestamp) + days(1) + hours(8), min(datSol$timestamp) + days(21) - hours(7))
     intrval2 = toString(interval(intrval1[1], intrval1[2]))
 
     timestamp = datSol$timestamp
     solVar = datSol[, colIndex]
+    # print(length(timestamp))
+    # print(length(solVar))    #šeit ir problēma
     datTemp = data.frame(timestamp, solVar)
-
-    plotSol <- datSol %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
+    # print(head(datTemp))
+    #
+    plotSol <- datTemp %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
         sharedTheme +
-        coord_cartesian(xlim = intrval1) +
+        # coord_cartesian(xlim = intrval1) +
         sharedAxis + ylab(var["labelSolVar"]) +
-        ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)+days(29)) ))
+        # ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)+days(21)) ))
+    ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)) ))
     ggsave(paste("sol", var["panel"], var["measurement"], ".pdf",sep=""),
            width = width, height = height, units = "cm")
+    # plot(datTemp$timestamp, datTemp$solVar)
     return(datTemp)
 }
 
@@ -75,38 +87,43 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 
-# i = 0
-# for (solName in solNames){
-#     for (type in types){
-#         for (unit in units){
-#             for (device in devices){
-#                 solname = paste(solName, type, device, unit, sep="")
-#                 # datTemp = pltMonth(solname)
-#                 solnameLst = interpretSolPanel(solname)
-#                 if (solnameLst["device"] == "PV" & solnameLst["unit"] == "W"){
-#                     datTemp = pltMonth(solname)
-#                     kWhMonth = sumMonth(datTemp, solname)
-#                     print(kWhMonth)
-#                     sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(1), datTemp, solname)
-#                     sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(7), datTemp, solname)
+i = 0
+for (solName in solNames){
+    for (type in types){
+        for (unit in units){
+            for (device in devices){
+                solname = paste(solName, type, device, unit, sep="")
+                solname2 = paste(" ", solName, type, device, unit, sep="")
+                # datTemp = pltMonth(solname)
+                solnameLst = interpretSolPanel(solname)
+                # print(solnameLst)
+                if (solnameLst["device"] == "PV" & solnameLst["unit"] == "W"){
+                    print(solname)
+                    datTemp = pltMonth(solname)
+                    # print(head(datTemp))
+                    kWhMonth = sumMonth(datTemp, solname)
+                    print(kWhMonth)
+                    sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(1), datTemp, solname)
+                #     sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(7), datTemp, solname)
+                # 
+                    if (i == 0){
+                    sumDays = sumDay
+                    # sumWeeks = sumWeek
+                    i = i + 1
+                    } else{
+                        sumDays = bind_cols(sumDays, sumDay)
+                        # sumWeeks = bind_cols(sumWeeks, sumWeek)
+                    }
+                }
+
+            }
+        }
+    }
+}
 # 
-#                     if (i == 0){
-#                     sumDays = sumDay
-#                     sumWeeks = sumWeek
-#                     i = i + 1
-#                     } else{
-#                         sumDays = bind_cols(sumDays, sumDay)
-#                         sumWeeks = bind_cols(sumWeeks, sumWeek)
-#                     }
-#                 }
 # 
-#             }
-#         }
-#     }
-# }
-# 
-# ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
-# sumDays = sumDays[, -ind]
+ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
+sumDays = sumDays[, -ind]
 # sumWeeks = sumWeeks[, -ind]
 # print(head(sumDays))
 # print(sumWeeks)
@@ -128,7 +145,6 @@ units = c('V', 'A', 'W')
 #     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
 #     theme_minimal() + xlab("Day") + ylab("Wh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayWH_D.pdf", width = width, height = height, units = "cm")
-# 
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = D13JA/1000, col = "D13JA", shape = "D13JA")) +
 #     geom_point(aes(y = D13LG/1000, col = "D13LG", shape = "D13LG")) +
@@ -139,7 +155,6 @@ units = c('V', 'A', 'W')
 #     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
 #     theme_minimal() + xlab("Day") + ylab("kWh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayKWH_D.pdf", width = width, height = height, units = "cm")
-# 
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = A13JA, col = "A13JA", shape = "A13JA")) +
 #     geom_point(aes(y = A13LG, col = "A13LG", shape = "A13LG")) +
@@ -150,7 +165,6 @@ units = c('V', 'A', 'W')
 #     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
 #     theme_minimal() + xlab("Day") + ylab("Wh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayWH_13.pdf", width = width, height = height, units = "cm")
-# 
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = A13JA/1000, col = "A13JA", shape = "A13JA")) +
 #     geom_point(aes(y = A13LG/1000, col = "A13LG", shape = "A13LG")) +
@@ -161,21 +175,19 @@ units = c('V', 'A', 'W')
 #     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
 #     theme_minimal() + xlab("Day") + ylab("kWh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayKWH_13.pdf", width = width, height = height, units = "cm")
-# 
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = A13JA, col = "A13JA", shape = "A13JA")) +
 #     geom_point(aes(y = A13LG, col = "A13LG", shape = "A13LG")) +
 #     scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
 #     theme_minimal() + xlab("Day") + ylab("Wh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayKWH_A13.pdf", width = width, height = height, units = "cm")
-
+# ######################
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = D13JA, col = "D13JA", shape = "D13JA")) +
 #     geom_point(aes(y = D13LG, col = "D13LG", shape = "D13LG")) +
 #     scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
 #     theme_minimal() + xlab("Day") + ylab("Wh") + ggtitle("Power generated by each solar panel")
 # ggsave("dayKWH_D13.pdf", width = width, height = height, units = "cm")
-# 
 # p = ggplot(sumDays, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = D90JA, col = "D90JA", shape = "D90JA")) +
 #     geom_point(aes(y = D90LG, col = "D90LG", shape = "D90LG")) +
@@ -185,7 +197,6 @@ units = c('V', 'A', 'W')
 # 
 # sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$D90JA)
 # sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$D90JA)
-# 
 # sumD90 = bind_rows(sumDayJA, sumDayLG)
 # p = ggplot(sumD90, aes(x=day, y=Wh, fill = type)) +
 #     geom_bar(stat = "identity", position=position_dodge()) +
@@ -193,7 +204,57 @@ units = c('V', 'A', 'W')
 #     theme_minimal() + xlab("Day") + ylab("Wh")
 # # ggtitle("Power generated by each solar panel")
 # ggsave("dayKWH_D90bar.pdf", width = width, height = height, units = "cm")
-# 
+
+sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$D90JA)
+sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$D90LG)
+# sumD90 = bind_rows(sumDayJA,sumDayLG)
+sumD90 = rbind(sumDayJA,sumDayLG)
+p = ggplot(sumD90, aes(x=day, y=Wh, fill = type)) +
+    geom_bar(stat = "identity", position=position_dodge()) +
+    scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
+    theme_minimal() + xlab("Day") + ylab("Wh")
+ggsave("dayKWH_D90bar.pdf", width = width, height = height, units = "cm")
+
+sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$D40JA)
+sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$D40LG)
+# sumD90 = bind_rows(sumDayJA,sumDayLG)
+sumD40 = rbind(sumDayJA,sumDayLG)
+p = ggplot(sumD40, aes(x=day, y=Wh, fill = type)) +
+    geom_bar(stat = "identity", position=position_dodge()) +
+    scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
+    theme_minimal() + xlab("Day") + ylab("Wh")
+ggsave("dayKWH_D40bar.pdf", width = width, height = height, units = "cm")
+
+sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$D13JA)
+sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$D13LG)
+# sumD90 = bind_rows(sumDayJA,sumDayLG)
+sumD13 = rbind(sumDayJA,sumDayLG)
+p = ggplot(sumD13, aes(x=day, y=Wh, fill = type)) +
+    geom_bar(stat = "identity", position=position_dodge()) +
+    scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
+    theme_minimal() + xlab("Day") + ylab("Wh")
+ggsave("dayKWH_D13bar.pdf", width = width, height = height, units = "cm")
+
+sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$R13JA)
+sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$R13LG)
+# sumD90 = bind_rows(sumDayJA,sumDayLG)
+sumR13 = rbind(sumDayJA,sumDayLG)
+p = ggplot(sumR13, aes(x=day, y=Wh, fill = type)) +
+    geom_bar(stat = "identity", position=position_dodge()) +
+    scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
+    theme_minimal() + xlab("Day") + ylab("Wh")
+ggsave("dayKWH_R13bar.pdf", width = width, height = height, units = "cm")
+
+sumDayJA = data.frame("day" = sumDays$day, "type" = rep("JA", each = nrow(sumDays)), "Wh" = sumDays$A13JA)
+sumDayLG = data.frame("day" = sumDays$day, "type" = rep("LG", each = nrow(sumDays)),"Wh" = sumDays$A13LG)
+# sumD90 = bind_rows(sumDayJA,sumDayLG)
+sumA13 = rbind(sumDayJA,sumDayLG)
+p = ggplot(sumA13, aes(x=day, y=Wh, fill = type)) +
+    geom_bar(stat = "identity", position=position_dodge()) +
+    scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
+    theme_minimal() + xlab("Day") + ylab("Wh")
+ggsave("dayKWH_A13bar.pdf", width = width, height = height, units = "cm")
+
 # # week
 # p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
 #     geom_point(aes(y = D13JA, col = "D13JA", shape = "D13JA")) +
