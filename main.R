@@ -137,15 +137,5 @@ sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90JA", eac
 sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90LG", each=nrow(sumDays)), "Wh"=sumDays$D90LG))
 as.factor(sumDays2$panel)
 
-
-colJA = c("#ADA8BE", "#9395D3", "#8D86C9", "#9888A5", "#A1E082")
-names(colJA) <- c("R13JA", "D13JA", "D40JA", "D90JA", "A13JA")
-
-colLG = c("#1C3738", "#6874E8", "#725AC1", "#392F5A", "#3DA35D")
-names(colLG) <- c("R13LG", "D13LG", "D40LG", "D90LG", "A13LG")
-
-colPan <- append(colJA, colLG)
-
-
-# setwd(paste(default, "code\\", sep=""))
-# source("plots.R")
+setwd(paste(default, "code\\", sep=""))
+source("plots.R")
