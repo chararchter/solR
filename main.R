@@ -2,6 +2,7 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 library(wesanderson)
+# library(stringr)
 # library(DescTools) # for trapezoid integrating
 # library(gridExtra) # combining 2 plots together in a grid
 # library(gridGraphics) # cheat solution for only 'grobs' allowed in "gList" error I found on stack exchange
@@ -80,6 +81,7 @@ pltMonth = function(solName){
 types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
+col_headings = list("timestamp")
 
 i = 0
 for (solName in solNames){
@@ -88,23 +90,21 @@ for (solName in solNames){
             for (device in devices){
                 solname = paste(solName, type, device, unit, sep="")
                 solname2 = paste(" ", solName, type, device, unit, sep="")
-                # datTemp = pltMonth(solname)
                 solnameLst = interpretSolPanel(solname)
-                # print(solnameLst)
                 if (solnameLst["device"] == "PV" & solnameLst["unit"] == "W"){
-                    print(solname)
                     datTemp = pltMonth(solname)
-                    # print(head(datTemp))
                     kWhMonth = sumMonth(datTemp, solname)
-                    print(kWhMonth)
+                    # print(kWhMonth)
+                    col_headings<-c(col_headings,solname)
                     sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(1), datTemp, solname)
                     sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(7), datTemp, solname)
-                # 
                     if (i == 0){
+                    subSol = datTemp
                     sumDays = sumDay
                     sumWeeks = sumWeek
                     i = i + 1
                     } else{
+                        subSol = bind_cols(subSol, datTemp)
                         sumDays = bind_cols(sumDays, sumDay)
                         sumWeeks = bind_cols(sumWeeks, sumWeek)
                     }
@@ -118,12 +118,22 @@ for (solName in solNames){
 ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
 sumDays = sumDays[, -ind]
 sumWeeks = sumWeeks[, -ind]
+subSol = subSol[, -ind]
+names(subSol) <- unlist(col_headings)
 
 # cumulative integral
 cumSumDays = cumsum(sumDays[,2:ncol(sumDays)])
 cumSumWeeks = cumsum(sumWeeks[,2:ncol(sumWeeks)])
 cumSumDays = bind_cols(sumDays[1], cumSumDays)
 cumSumWeeks = bind_cols(sumWeeks[1], cumSumWeeks)
+
+# save data frames to csv
+month = tolower(month(min(datSol$timestamp), label=TRUE))
+write.csv(subSol, file = paste0(month,"subSol.csv"))
+write.csv(sumDays, file = paste0(month,"sumDays.csv"))
+write.csv(sumWeeks, file = paste0(month,"sumWeeks.csv"))
+write.csv(cumSumDays, file = paste0(month,"cumSumDays.csv"))
+write.csv(cumSumWeeks, file = paste0(month,"cumSumWeeks.csv"))
 
 sumDays2 = data.frame("day"=sumDays$day, "panel"=rep("D40JA", each=nrow(sumDays)), "Wh"=sumDays$D40JA)
 sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D40LG", each=nrow(sumDays)), "Wh"=sumDays$D40LG))
@@ -136,6 +146,36 @@ sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("R13LG", eac
 sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90JA", each=nrow(sumDays)), "Wh"=sumDays$D90JA))
 sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D90LG", each=nrow(sumDays)), "Wh"=sumDays$D90LG))
 as.factor(sumDays2$panel)
+
+cumSumDays2 = data.frame("day"=cumSumDays$day, "panel"=rep("D40JA", each=nrow(cumSumDays)), "Wh"=cumSumDays$D40JA)
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("D40LG", each=nrow(cumSumDays)), "Wh"=cumSumDays$D40LG))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("D13JA", each=nrow(cumSumDays)), "Wh"=cumSumDays$D13JA))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("D13LG", each=nrow(cumSumDays)), "Wh"=cumSumDays$D13LG))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("A13JA", each=nrow(cumSumDays)), "Wh"=cumSumDays$A13JA))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("A13LG", each=nrow(cumSumDays)), "Wh"=cumSumDays$A13LG))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("R13JA", each=nrow(cumSumDays)), "Wh"=cumSumDays$R13JA))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("R13LG", each=nrow(cumSumDays)), "Wh"=cumSumDays$R13LG))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("D90JA", each=nrow(cumSumDays)), "Wh"=cumSumDays$D90JA))
+cumSumDays2 = rbind(cumSumDays2,data.frame("day"=cumSumDays$day, "panel"=rep("D90LG", each=nrow(cumSumDays)), "Wh"=cumSumDays$D90LG))
+as.factor(cumSumDays2$panel)
+
+
+# size adjustment coef for each type of panel
+k_ja = 1.63515
+k_lg = 1.7272
+
+# check again what you divide
+# sumDaysJA = dplyr::filter(sumDays2, grepl('JA', panel))
+# sumDaysLG = dplyr::filter(sumDays2, grepl('LG', panel))
+# sumDaysJA = sumDaysJA / k_ja
+# sumDaysLG = sumDaysLG / k_lg
+# sumDaysm2 = rbind(sumDaysJA, sumDaysLG)
+
+# cumDaysJA = dplyr::filter(cumSumDays2, grepl('JA', panel))
+# cumDaysLG = dplyr::filter(cumSumDays2, grepl('LG', panel))
+# cumDaysJA = cumDaysJA / k_ja
+# cumDaysLG = cumDaysLG / k_lg
+# cumDaysm2 = rbind(cumDaysJA, cumDaysLG)
 
 setwd(paste(default, "code\\", sep=""))
 source("plots.R")

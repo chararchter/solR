@@ -17,12 +17,9 @@ export_png <- function(p, namePanel){
            height=height, width=width, units = "cm")
 }
 
-
 p = ggplot(sumDays2, aes(x=day, y=Wh, color=panel)) + geom_point() +
     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle + colScale 
-
-p1 = p
-export_png(p2, "all")
+export_png(p, "all")
 
 p2 <- p %+% droplevels(subset(sumDays2, panel=="D40JA" | panel=="D40LG")) 
 export_png(p2, "D40")
@@ -37,90 +34,119 @@ export_png(p2, "R13")
 
 b = ggplot(sumDays2, aes(x=day, y=Wh, fill=panel)) + geom_bar(stat = "identity") +
     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle + fillScale
-export_png(p2, "allbar")
+export_png(b, "allbar")
 
 b1 = ggplot(sumDays2, aes(x=day, y=Wh, fill=panel)) + geom_bar(stat = "identity", position=position_dodge()) +
     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle + fillScale
+export_png(b1, "allbar2")
 
 b2 = b1 %+% droplevels(subset(sumDays2, panel=="D40JA" | panel=="D40LG")) 
-export_png(p2, "D40bar")
+export_png(b2, "D40bar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D90JA" | panel=="D90LG"))
-export_png(p2, "D90bar")
+export_png(b2, "D90bar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D13JA" | panel=="D13LG"))
-export_png(p2, "D13bar")
+export_png(b2, "D13bar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="A13JA" | panel=="A13LG"))
-export_png(p2, "A13bar")
+export_png(b2, "A13bar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="R13JA" | panel=="R13LG"))
-export_png(p2, "R13bar")
-
+export_png(b2, "R13bar")
 
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
-export_png(p2, "DJAbar")
+export_png(b2, "DJAbar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
-export_png(p2, "DLGbar")
+export_png(b2, "DLGbar")
 b2 <- b %+% droplevels(subset(sumDays2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
-export_png(p2, "DJA2bar")
+export_png(b2, "DJA2bar")
 b2 <- b %+% droplevels(subset(sumDays2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
-export_png(p2, "DLG2bar")
+export_png(b2, "DLG2bar")
 
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
-export_png(p2, "13JAbar")
+export_png(b2, "13JAbar")
 b2 <- b1 %+% droplevels(subset(sumDays2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
-export_png(p2, "13LGbar")
+export_png(b2, "13LGbar")
 b2 <- b %+% droplevels(subset(sumDays2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
-export_png(p2, "13JA2bar")
+export_png(b2, "13JA2bar")
 b2 <- b %+% droplevels(subset(sumDays2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
-export_png(p2, "13LG2bar")
+export_png(b2, "13LG2bar")
 
-# # week
-# p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
-#     geom_point(aes(y = D13JA, col = "D13JA", shape = "D13JA")) +
-#     geom_point(aes(y = D13LG, col = "D13LG", shape = "D13LG")) +
-#     geom_point(aes(y = D40JA, col = "D40JA", shape = "D40JA")) +
-#     geom_point(aes(y = D40LG, col = "D40LG", shape = "D40LG")) +
-#     geom_point(aes(y = D90JA, col = "D90JA", shape = "D90JA")) +
-#     geom_point(aes(y = D90LG, col = "D90LG", shape = "D90LG")) +
-#     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
-#     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle
-# ggsave(paste("weekWH_D", extension, sep=""), width = width, height = height, units = "cm")
-# 
-# p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
-#     geom_point(aes(y = A13JA, col = "A13JA", shape = "A13JA")) +
-#     geom_point(aes(y = A13LG, col = "A13LG", shape = "A13LG")) +
-#     geom_point(aes(y = D13JA, col = "D13JA", shape = "D13JA")) +
-#     geom_point(aes(y = D13LG, col = "D13LG", shape = "D13LG")) +
-#     geom_point(aes(y = R13JA, col ="R13JA", shape = "R13JA")) +
-#     geom_point(aes(y = R13LG, col = "R13LG", shape = "R13LG")) +
-#     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
-#     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle
-# ggsave(paste("weekWH_13", extension, sep=""), width = width, height = height, units = "cm")
-# 
-# p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
-#     geom_point(aes(y = A13JA, col = "A13JA", shape = "A13JA")) +
-#     geom_point(aes(y = A13LG, col = "A13LG", shape = "A13LG")) +
-#     scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
-#     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle
-# ggsave(paste("weekWH_A13", extension, sep=""), width = width, height = height, units = "cm")
-# 
-# p = ggplot(sumWeeks, aes(x=day, y=value, color = variable, shape = variable)) +
-#     geom_point(aes(y = D13JA, col = "D13JA", shape = "D13JA")) +
-#     geom_point(aes(y = D13LG, col = "D13LG", shape = "D13LG")) +
-#     scale_color_manual(values = wes_palette("BottleRocket1", 2)) +
-#     theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle
-# ggsave(paste("weekWH_D13", extension, sep=""), width = width, height = height, units = "cm")
-# 
-# # base <- ggplot(sumDays, aes(x = day, y = D40JA)) +
-# #     geom_blank() +
-# #     xlab("Day") +
-# #     ylab("Wh")
-# 
-# p = ggplot(cumSumDays, aes(x=day, y=value, color = variable)) +
-#     geom_line(aes(y = A13JA/1000, col = "A13JA")) +
-#     geom_line(aes(y = A13LG/1000, col = "A13LG")) +
-#     geom_line(aes(y = D13JA/1000, col = "D13JA")) +
-#     geom_line(aes(y = D13LG/1000, col = "D13LG")) +
-#     geom_line(aes(y = R13JA/1000, col ="R13JA")) +
-#     geom_line(aes(y = R13LG/1000, col = "R13LG")) +
-#     scale_color_manual(values = wes_palette("BottleRocket1", 6)) +
-#     theme_minimal() + xlab("Day") + ylab("kWh") + cumTitle
-# ggsave(paste("cum_dayKWH_13", extension, sep=""), width = width, height = height, units = "cm")
+# cumulative
+p = ggplot(cumSumDays2, aes(x=day, y=Wh, color=panel)) + geom_line() +
+    theme_minimal() + xlab("Day") + ylab("Wh") + baseTitle + colScale 
+export_png(p, "all_cum")
+
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D40JA" | panel=="D40LG")) 
+export_png(p2, "D40_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D90JA" | panel=="D90LG"))
+export_png(p2, "D90_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D13JA" | panel=="D13LG"))
+export_png(p2, "D13_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="A13JA" | panel=="A13LG"))
+export_png(p2, "A13_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="R13JA" | panel=="R13LG"))
+export_png(p2, "R13_cum")
+
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
+export_png(p2, "DJA_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
+export_png(p2, "DLG_cum")
+
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
+export_png(p2, "13JA_cum")
+p2 <- p %+% droplevels(subset(cumSumDays2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
+export_png(p2, "13LG_cum")
+
+# adjust to panel size
+p = ggplot(sumDaysm2, aes(x=day, y=Wh, color=panel)) + geom_point() +
+    theme_minimal() + xlab("Day") + ylab("Wh/m2") + baseTitle + colScale 
+export_png(p, "m2_all")
+
+p2 <- p %+% droplevels(subset(sumDaysm2, panel=="D40JA" | panel=="D40LG")) 
+export_png(p2, "m2_D40")
+p2 <- p %+% droplevels(subset(sumDaysm2, panel=="D90JA" | panel=="D90LG"))
+export_png(p2, "m2_D90")
+p2 <- p %+% droplevels(subset(sumDaysm2, panel=="D13JA" | panel=="D13LG"))
+export_png(p2, "m2_D13")
+p2 <- p %+% droplevels(subset(sumDaysm2, panel=="A13JA" | panel=="A13LG"))
+export_png(p2, "m2_A13")
+p2 <- p %+% droplevels(subset(sumDaysm2, panel=="R13JA" | panel=="R13LG"))
+export_png(p2, "m2_R13")
+
+b = ggplot(sumDaysm2, aes(x=day, y=Wh, fill=panel)) + geom_bar(stat = "identity") +
+    theme_minimal() + xlab("Day") + ylab("Wh/m2") + baseTitle + fillScale
+export_png(b, "allbar")
+
+b1 = ggplot(sumDaysm2, aes(x=day, y=Wh, fill=panel)) + geom_bar(stat = "identity", position=position_dodge()) +
+    theme_minimal() + xlab("Day") + ylab("Wh/m2") + baseTitle + fillScale
+export_png(b1, "m2_allbar2")
+
+b2 <- b1 %+% droplevels(subset(sumDaysm2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
+export_png(b2, "m2_DJAbar")
+b2 <- b1 %+% droplevels(subset(sumDaysm2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
+export_png(b2, "m2_DLGbar")
+b2 <- b %+% droplevels(subset(sumDaysm2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
+export_png(b2, "m2_DJA2bar")
+b2 <- b %+% droplevels(subset(sumDaysm2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
+export_png(b2, "m2_DLG2bar")
+
+b2 <- b1 %+% droplevels(subset(sumDaysm2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
+export_png(b2, "m2_13JAbar")
+b2 <- b1 %+% droplevels(subset(sumDaysm2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
+export_png(b2, "m2_13LGbar")
+b2 <- b %+% droplevels(subset(sumDaysm2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
+export_png(b2, "m2_13JA2bar")
+b2 <- b %+% droplevels(subset(sumDaysm2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
+export_png(b2, "m2_13LG2bar")
+
+p = ggplot(cumDaysm2, aes(x=day, y=Wh, color=panel)) + geom_line() +
+    theme_minimal() + xlab("Day") + ylab("Wh/m2") + baseTitle + colScale 
+export_png(p, "m2_all_cum")
+
+p2 <- p %+% droplevels(subset(cumDaysm2, panel=="D13JA" | panel=="D40JA" | panel=="D90JA"))
+export_png(p2, "m2_DJAbar_cum")
+p2 <- p %+% droplevels(subset(cumDaysm2, panel=="D13LG" | panel=="D40LG" | panel=="D90LG"))
+export_png(p2, "m2_DLGbar_cum")
+
+p2 <- p %+% droplevels(subset(cumDaysm2, panel=="D13JA" | panel=="R13JA" | panel=="A13JA"))
+export_png(p2, "m2_13JAbar_cum")
+p2 <- p %+% droplevels(subset(cumDaysm2, panel=="D13LG" | panel=="R13LG" | panel=="A13LG"))
+export_png(p2, "m2_13LGbar_cum")
