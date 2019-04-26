@@ -62,14 +62,14 @@ pltMonth = function(solName){
     solVar = datSol[, colIndex]
     datTemp = data.frame(timestamp, solVar)
 
-    plotSol <- datTemp %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
-        sharedTheme +
-        # coord_cartesian(xlim = intrval1) +
-        sharedAxis + ylab(var["labelSolVar"]) +
-        # ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)+days(21)) ))
-    ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)) ))
-    ggsave(paste("sol", var["panel"], var["measurement"], extension, sep=""),
-           width = width, height = height, units = "cm")
+    # plotSol <- datTemp %>% ggplot(aes(x = timestamp, y = solVar)) + geom_line() +
+    #     sharedTheme +
+    #     # coord_cartesian(xlim = intrval1) +
+    #     sharedAxis + ylab(var["labelSolVar"]) +
+    #     # ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)+days(21)) ))
+    # ggtitle(paste(var["panelVerbose"], date(min(datSol$timestamp)) ))
+    # ggsave(paste("sol", var["panel"], var["measurement"], extension, sep=""),
+    #        width = width, height = height, units = "cm")
     return(datTemp)
 }
 
@@ -82,6 +82,13 @@ types = c('JA','LG')
 devices = c('_Bat', '_PV_')
 units = c('V', 'A', 'W')
 col_headings = list("timestamp")
+
+# solname = "solD40JA_PV_W"
+# kWhMonth = sumMonth(datTemp, solname)
+# datTemp = pltMonth(solname)
+# sumHour = integrateIntervalH(min(datTemp$timestamp), max(datTemp$timestamp),
+#     hours(1), datTemp, solname)
+
 
 i = 0
 for (solName in solNames){
@@ -96,15 +103,21 @@ for (solName in solNames){
                     kWhMonth = sumMonth(datTemp, solname)
                     # print(kWhMonth)
                     col_headings<-c(col_headings,solname)
-                    sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(1), datTemp, solname)
-                    sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)), days(7), datTemp, solname)
+                    # sumHour = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)),
+                                                 # hours(1), datTemp, solname)
+                    sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)),
+                                                days(1), datTemp, solname)
+                    sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)),
+                                                 days(7), datTemp, solname)
                     if (i == 0){
                     subSol = datTemp
+                    # sumHours = sumHour
                     sumDays = sumDay
                     sumWeeks = sumWeek
                     i = i + 1
                     } else{
                         subSol = bind_cols(subSol, datTemp)
+                        # sumHours = bind_cols(sumHours, sumHour)
                         sumDays = bind_cols(sumDays, sumDay)
                         sumWeeks = bind_cols(sumWeeks, sumWeek)
                     }
@@ -114,7 +127,7 @@ for (solName in solNames){
         }
     }
 }
- 
+
 ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
 sumDays = sumDays[, -ind]
 sumWeeks = sumWeeks[, -ind]
@@ -165,17 +178,21 @@ k_ja = 1.63515
 k_lg = 1.7272
 
 # check again what you divide
-# sumDaysJA = dplyr::filter(sumDays2, grepl('JA', panel))
-# sumDaysLG = dplyr::filter(sumDays2, grepl('LG', panel))
-# sumDaysJA = sumDaysJA / k_ja
-# sumDaysLG = sumDaysLG / k_lg
-# sumDaysm2 = rbind(sumDaysJA, sumDaysLG)
+sumDaysJA = dplyr::filter(sumDays2, grepl('JA', panel))
+sumDaysLG = dplyr::filter(sumDays2, grepl('LG', panel))
+sumDaysJA$Wh = sumDaysJA$Wh / k_ja
+sumDaysLG$Wh = sumDaysLG$Wh / k_lg
+sumDaysm2 = rbind(sumDaysJA, sumDaysLG)
 
-# cumDaysJA = dplyr::filter(cumSumDays2, grepl('JA', panel))
-# cumDaysLG = dplyr::filter(cumSumDays2, grepl('LG', panel))
-# cumDaysJA = cumDaysJA / k_ja
-# cumDaysLG = cumDaysLG / k_lg
-# cumDaysm2 = rbind(cumDaysJA, cumDaysLG)
+cumDaysJA = dplyr::filter(cumSumDays2, grepl('JA', panel))
+cumDaysLG = dplyr::filter(cumSumDays2, grepl('LG', panel))
+cumDaysJA$Wh = cumDaysJA$Wh / k_ja
+cumDaysLG$Wh = cumDaysLG$Wh / k_lg
+cumDaysm2 = rbind(cumDaysJA, cumDaysLG)
+# names(subSol) <- unlist(col_headings)
+
+write.csv(sumDaysm2, file = paste0(month,"sumDaysm2.csv"))
+write.csv(cumDaysm2, file = paste0(month,"cumSumDaysm2.csv"))
 
 setwd(paste(default, "code\\", sep=""))
 source("plots.R")
