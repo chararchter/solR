@@ -59,6 +59,53 @@ integrateInterval = function(lowerLimit, delta_t, datTemp, solName){
     return(sumInt)
 }
 
+
+integrateIntervalH = function(lowerLimit, delta_t, datTemp, solName){
+    # previous function only works on days, this one on hours 
+    solname = interpretSolPanel(solName)
+    var = produceStr(solname)
+    
+    timestamp = datTemp$timestamp
+    upperLimit = lowerLimit + delta_t
+    intrBig = (date(max(timestamp))-lowerLimit) # whole interval
+    intrSmall = (upperLimit - lowerLimit) #small interval
+    itrTimes = floor(as.numeric(intrBig) / as.numeric(intrSmall)) # how many small interval contains in big interval
+    
+    x <- as_datetime(itrTimes)
+    y <- numeric(itrTimes)
+    count = 0
+    i = 1
+    
+    t0 = floor_date(lowerLimit, unit = "hour")
+    t1 = floor_date(upperLimit, unit = "hour")
+    intrv1 = interval(t0, t1)
+    print(intrv1)
+    
+    # while (interval(lowerLimit, upperLimit) %within% interval(lowerLimit, max(timestamp))) {
+    #     strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(lowerLimit)))[1]
+    #     endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(upperLimit)))[1]
+    #     datInt = datTemp[strtIndex:endIndex,]
+    #     
+    #     t = trapezoidArea(datInt$timestamp, datInt$solVar)
+    #     kWh = t / 3600
+    #     count = count + kWh
+    #     # print(paste(interval(lowerLimit, upperLimit),"   ", "kWh =", format(kWh, digits = 2, nsmall=2), sep = " "))
+    #     
+    #     intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
+    #     x[i] <- floor_date(timestamp[strtIndex], unit = "hour")
+    #     y[i] <- kWh
+    #     
+    #     lowerLimit =  upperLimit
+    #     upperLimit = upperLimit + delta_t
+    #     i = i + 1
+    # }
+    # z = toString(var["panel"])
+    # sumInt = data.frame("timestamp" = x, "solVar" = y)
+    # colnames(sumInt)[2] <- toString(var["panel"])
+    # print(sumInt)
+    # return(sumInt)
+}
+
 integrateInterval2 = function(gLowerLimit, gUpperLimit, delta_t, datTemp, solName){
     # Defines lower and upper limits for trapezoidArea() integral.
     # Output - data frame, where "time" - lower limit of interval;
