@@ -59,81 +59,41 @@ integrateInterval = function(lowerLimit, delta_t, datTemp, solName){
     return(sumInt)
 }
 
-# function(x, y, from = min(x, na.rm=TRUE), to = max(x, na.rm=TRUE))
-
 integrateIntervalH = function(x, y, delta_t, solName, from = min(x, na.rm=TRUE), to = max(x, na.rm=TRUE)){
     # previous function only works on days, this one on hours 
     solname = interpretSolPanel(solName)
     var = produceStr(solname)
     
-    # print(head(x))
-    # print(class(x))
-    # print(head(y))
-    # print(class(y))
-    # print(to)
-    # print(class(to))
-    # print(gLowerLimit)
-    # print(gUpperLimit)
-    # print(delta_t)
-    # print(head(datTemp))
-    # print(solName)
-
-    gLowerLimit = from
-    gUpperLimit = to
     lowerLimit = from
     upperLimit = lowerLimit + delta_t
-    # print(gLowerLimit)
-    # print(gUpperLimit)
-    # print(delta_t)
-    # print(head(datTemp))
-    # print(solName)
-    
-    intrBig = gUpperLimit - lowerLimit # whole interval
-    intrSmall = upperLimit - gLowerLimit #small interval
-    itrTimes = floor(as.numeric(intrBig) / as.numeric(intrSmall)) # how many small interval contains in big interval
+    intrBig = to - from # whole interval
+    intrSmall = upperLimit - lowerLimit #small interval
+    itrTimes = floor(as.numeric(intrBig) / as.numeric(intrSmall)) # how many small interval in big interval
 
-    x <- as_datetime(itrTimes)
-    y <- numeric(itrTimes)
+    xres <- as_datetime(itrTimes)
+    yres <- numeric(itrTimes)
     count = 0
     i = 1
-    # print("local")
-    # print(lowerLimit)
-    # print(upperLimit)
-    # 
-    # t0 = floor_date(lowerLimit, unit = "hour")
-    # t1 = floor_date(upperLimit, unit = "hour")
-    # intrv1 = interval(t0, t1)
-    # print(intrv1)
     
-    while (interval(lowerLimit, upperLimit) %within% interval(gLowerLimit, gUpperLimit)) {
-        # strtIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(lowerLimit)))[1]
-        # endIndex = which(date(as.POSIXct(timestamp)) == date(as.POSIXct(upperLimit)))[1]
-        strtIndex = which(date(timestamp) == date(lowerLimit) & hour(timestamp) == hour(lowerLimit))[1]
-        endIndex = which(date(timestamp) == date(upperLimit) & hour(timestamp) == hour(upperLimit))[1]
-        
-        if (hour(upperLimit) == 21){
-        print(paste0("start index ", strtIndex))
-        print(paste0("end index ", endIndex))
-        }
+    while (interval(lowerLimit, upperLimit) %within% interval(from, to)) {
+        strtIndex = which(date(x) == date(lowerLimit) & hour(x) == hour(lowerLimit))[1]
+        endIndex = which(date(x) == date(upperLimit) & hour(x) == hour(upperLimit))[1]
+
         datInt = datTemp[strtIndex:endIndex,]
-
         t = trapezoidArea(datInt$timestamp, datInt$solVar)
-        kWh = t / 3600
-        count = count + kWh
-        # print(paste(interval(lowerLimit, upperLimit),"   ", "kWh =", format(kWh, digits = 2, nsmall=2), sep = " "))
-
-        intLength = int_length(interval(timestamp[strtIndex], timestamp[endIndex]))
-        x[i] <- floor_date(timestamp[strtIndex], unit = "hour")
-        y[i] <- round(kWh, digits=2)
+        
+        wh = t / 3600
+        count = count + wh
+        xres[i] <- floor_date(x[strtIndex], unit = "hour")
+        yres[i] <- round(wh, digits=2)
 
         lowerLimit =  upperLimit
         upperLimit = upperLimit + delta_t
         i = i + 1
     }
     z = toString(var["panel"])
-    sumInt = data.frame("timestamp" = x, "solVar" = y)
+    sumInt = data.frame("timestamp" = xres, "solVar" = yres)
     colnames(sumInt)[2] <- toString(var["panel"])
-    print(sumInt)
     return(sumInt)
 }
 
