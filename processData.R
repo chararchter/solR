@@ -18,6 +18,29 @@ importDataRaw = function(whichData, id){
     return(data)
 }
 
+
+findSolPV= function(data){
+    # Input - datSol data frame after importRaw
+    # Output - subset of DatSol with Solar Charger PV power columns
+    lst1 = unlist(as.list(data[1,]))
+    lst2 = unlist(as.list(data[2,]))
+    
+    solPV = stringr::str_detect(lst1, "Solar") & stringr::str_detect(lst2, "PV power")
+    indices = which(solPV == TRUE)
+    subSol = data[indices]
+    return(subSol)
+}
+
+findNum= function(data){
+    # Input - datSol data frame after importRaw
+    # Output - subset of DatSol with Solar Charger PV power columns
+    lst1 = unlist(as.list(data[1,]))
+    solNum = unlist(stringr::str_split(lst1, " "))
+    ind = seq(3,length(solNum), 3)
+    return(solNum[ind])
+}
+
+
 findSolChargerCol = function(datSol){
     # Input - datSol data frame
     # Output - vector of column indices where in the native header
