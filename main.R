@@ -104,31 +104,33 @@ for (solName in solNames){
                     # print(solname)
                     # print(solnameLst)
                     datTemp = pltMonth(solname)
-                    whMonth = sumMonth(datTemp, solname)
-                    col_headings<-c(col_headings,solname)
-                    sumHour = integrateIntervalH(datTemp$timestamp, datTemp$solVar, hours(1), solname)
+                    # whMonth = sumMonth(datTemp, solname)
+                    # col_headings<-c(col_headings,solname)
+                    # sumHour = integrateIntervalH(datTemp$timestamp, datTemp$solVar, hours(1), "hour", solname)
+                    sumDay = integrateIntervalH(date(datTemp$timestamp), date(datTemp$solVar), days(1), "day", solname)
+                    # sumDay = integrateIntervalH(datTemp$timestamp, datTemp$solVar, days(1), solname)
                     # sumDay = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)),
-                    #                             days(1), datTemp, solname)
+                                                # days(1), datTemp, solname)
                     # sumWeek = integrateInterval2(date(min(datTemp$timestamp)), date(max(datTemp$timestamp)),
                     #                              days(7), datTemp, solname)
                     if (i == 0){
                     # subSol = datTemp
-                    sumHours = sumHour
-                    # sumDays = sumDay
+                    # sumHours = sumHour
+                    sumDays = sumDay
                     # sumWeeks = sumWeek
                     date_ym = paste0(year(datTemp$timestamp[1]), "-", format(datTemp$timestamp[1],"%m"))
                     panel = paste0(solnameLst["dir"], solnameLst["degree"], solnameLst["type"])
-                    dfMonth = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
+                    # dfMonth = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
                     i = i + 1
                     } else{
                         # subSol = bind_cols(subSol, datTemp)
-                        sumHours = bind_cols(sumHours, sumHour)
-                        # sumDays = bind_cols(sumDays, sumDay)
+                        # sumHours = bind_cols(sumHours, sumHour)
+                        sumDays = bind_cols(sumDays, sumDay)
                         # sumWeeks = bind_cols(sumWeeks, sumWeek)
                         panel = paste0(solnameLst["dir"], solnameLst["degree"], solnameLst["type"])
                         print(panel)
-                        monthi = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
-                        dfMonth = bind_rows(dfMonth, monthi)
+                        # monthi = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
+                        # dfMonth = bind_rows(dfMonth, monthi)
                     }
                 }
 
@@ -137,14 +139,15 @@ for (solName in solNames){
     }
 }
 
-# ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
-# sumDays = sumDays[, -ind]
+ind <- seq(3, ncol(sumDays), by=2) # indices of columns to remove: every 3rd column starting from 1
+sumDays = sumDays[, -ind]
+
 # sumWeeks = sumWeeks[, -ind]
 # subSol = subSol[, -ind]
 # names(subSol) <- unlist(col_headings)
 
-ind <- seq(3, ncol(sumHours), by=2) # indices of columns to remove: every 3rd column starting from 1
-sumHours = sumHours[, -ind]
+# ind <- seq(3, ncol(sumHours), by=2) # indices of columns to remove: every 3rd column starting from 1
+# sumHours = sumHours[, -ind]
 # 
 # # round
 # sumDays[, -1]=round(sumDays[, -1], 2)
@@ -160,12 +163,12 @@ sumHours = sumHours[, -ind]
 # date_ym = paste0(year(datTemp$timestamp[1]), "-", format(datTemp$timestamp[1],"%m"), "_")
 # month = tolower(month(min(datSol$timestamp), label=TRUE))
 # write.csv(subSol, file = paste0(date_ym,"subSol.csv"), row.names=FALSE)
-# write.csv(sumDays, file = paste0(date_ym,"whDays.csv"), row.names=FALSE)
+write.csv(sumDays, file = paste0(date_ym,"whDays.csv"), row.names=FALSE)
 # write.csv(sumWeeks, file = paste0(date_ym,"whWeeks.csv"), row.names=FALSE)
 # write.csv(dfMonth, file = paste0(date_ym,"whMonths.csv"), row.names=FALSE)
 # write.csv(cumSumDays, file = paste0(date_ym,"cumWhDays.csv"), row.names=FALSE)
 # write.csv(cumSumWeeks, file = paste0(date_ym,"cumWhWeeks.csv"), row.names=FALSE)
-write.csv(sumHours, file = paste0(date_ym,"whHours.csv"), row.names=FALSE)
+# write.csv(sumHours, file = paste0(date_ym,"whHours.csv"), row.names=FALSE)
 
 # sumDays2 = data.frame("day"=sumDays$day, "panel"=rep("D40JA", each=nrow(sumDays)), "Wh"=sumDays$D40JA)
 # sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$day, "panel"=rep("D40LG", each=nrow(sumDays)), "Wh"=sumDays$D40LG))
