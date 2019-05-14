@@ -19,9 +19,42 @@ findIndex = function(x, lower, delta_t, timeUnit){
     if (timeUnit == "min"){
     strtIndex = which(date(x) == date(lower) & hour(x) == hour(lower) & minute(x) == minute(lower))[1]
     endIndex = which(date(x) == date(upper) & hour(x) == hour(upper) & minute(x) == minute(upper))[1]
+    # print(strtIndex)
+    # print(endIndex)
+    if (is.na(strtIndex)){
+        strtIndex = which(date(x) == date(lower - minutes(1)) &
+                              hour(x) == hour(lower - minutes(1)) & minute(x) == minute(lower - minutes(1)))[1]
+        if (is.na(strtIndex)){
+            strtIndex = which(date(x) == date(lower + minutes(1)) &
+                                  hour(x) == hour(lower + minutes(1)) & minute(x) == minute(lower + minutes(1)))[1]
+        }
+    } 
+    if (is.na(endIndex)){
+        endIndex = which(date(x) == date(upper- minutes(1)) &
+                             hour(x) == hour(upper- minutes(1)) & minute(x) == minute(upper- minutes(1)))[1]
+        if (is.na(endIndex)){
+            endIndex = which(date(x) == date(upper + minutes(1)) &
+                                 hour(x) == hour(upper + minutes(1)) & minute(x) == minute(upper + minutes(1)))[1]
+        }
+    }
     } else if (timeUnit == "hour"){
     strtIndex = which(date(x) == date(lower) & hour(x) == hour(lower))[1]
     endIndex = which(date(x) == date(upper) & hour(x) == hour(upper))[1]
+    if (is.na(strtIndex)){
+        print('sakums')
+        strtIndex = which(date(x) == date(lower - hours(1)) & hour(x) == hour(lower - hours(1)))[1]
+        if (is.na(strtIndex)){
+            strtIndex = which(date(x) == date(lower + hours(1)) & hour(x) == hour(lower + hours(1)))[1]
+        }
+    }
+    if (is.na(endIndex)){
+        print('beigas')
+        endIndex = which(date(x) == date(upper - hours(1)) & hour(x) == hour(upper - hours(1) - minutes(2)))[1]
+        if (is.na(endIndex)){
+            print("beigas2")
+            endIndex = which(date(x) == date(upper + hours(1)) & hour(x) == hour(upper + hours(1) + minutes(2)))[1]
+        }
+    }
     } else if (timeUnit == "day"){
         strtIndex = which(date(x) == date(lower))[1]
         endIndex = which(date(x) == date(upper))[1]  
@@ -41,7 +74,12 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
     intrBig = to - from # whole interval
     intrSmall = upperLimit - lowerLimit #small interval
     itrTimes = floor(as.numeric(intrBig) / as.numeric(intrSmall)) # how many small interval in big interval
-
+    # print(upperLimit)
+    # print(lowerLimit)
+    # print(intrBig)
+    # print(intrSmall)
+    # print("itrTimes")
+    # print(itrTimes)
     xres <- as_datetime(itrTimes)
     yres <- numeric(itrTimes)
     count = 0
@@ -49,6 +87,7 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
     while (interval(lowerLimit, upperLimit) %within% interval(from, to)) {
 
         indices = findIndex(x, lowerLimit, delta_t, timeUnit)
+        # print(indices)
         datInt = datTemp[indices[1]:indices[2],]
         t = trapezoidArea(datInt$timestamp, datInt$solVar)
         
@@ -60,6 +99,13 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
         lowerLimit =  upperLimit
         upperLimit = upperLimit + delta_t
         i = i + 1
+        # print(lowerLimit)
+        print(indices[2])
+        print(upperLimit)
+        
+        # if (is.na(upperLimit)){
+        #     upperLimit = lowerLimit + hours(2)
+        # }
     }
     
     z = toString(var["panel"])

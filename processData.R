@@ -24,9 +24,10 @@ findSolPV= function(data){
     # Output - subset of DatSol with Solar Charger PV power columns
     lst1 = unlist(as.list(data[1,]))
     lst2 = unlist(as.list(data[2,]))
+    indices = (1)
     
     solPV = stringr::str_detect(lst1, "Solar") & stringr::str_detect(lst2, "PV power")
-    indices = which(solPV == TRUE)
+    indices = c(indices, which(solPV == TRUE))
     subSol = data[indices]
     return(subSol)
 }
@@ -36,7 +37,8 @@ findNum= function(data){
     # Output - subset of DatSol with Solar Charger PV power columns
     lst1 = unlist(as.list(data[1,]))
     solNum = unlist(stringr::str_split(lst1, " "))
-    ind = seq(3,length(solNum), 3)
+    # print(solNum)
+    ind = seq(4,length(solNum), 3)
     return(solNum[ind])
 }
 
@@ -56,6 +58,22 @@ findSolChargerCol = function(datSol){
         }
     }
     return(unlist(indxSubSol))
+}
+
+mapColNames = function(num){
+    # Input - num is list of indices in correct order
+    # Output - list of correct col names according to charger number
+    map = read.csv("numToCol.csv", header = TRUE, sep = ",")
+    map$newColName = as.character(map$newColName)
+    
+    col_headings = list()
+    col_headings[1] = "timestamp"
+    
+    for (i in 1:length(num)){
+        index = which(map$numCharger == num[i])[1]
+        col_headings[i+1] = map$newColName[index]
+    }
+    return(unlist(col_headings))
 }
 
 renameSubSol = function(subSol, timestamp){
