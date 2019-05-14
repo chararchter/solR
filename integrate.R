@@ -68,6 +68,7 @@ findIndex = function(x, lower, delta_t, timeUnit){
 integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na.rm=TRUE), to = max(x, na.rm=TRUE)){
     solname = interpretSolPanel(solName)
     var = produceStr(solname)
+    sep = "."
     
     lowerLimit = from
     upperLimit = lowerLimit + delta_t
@@ -100,17 +101,19 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
         upperLimit = upperLimit + delta_t
         i = i + 1
         # print(lowerLimit)
-        print(indices[2])
-        print(upperLimit)
+        # print(indices[2])
+        # print(upperLimit)
         
         # if (is.na(upperLimit)){
         #     upperLimit = lowerLimit + hours(2)
         # }
     }
     
-    z = toString(var["panel"])
+    # z = toString(var["panel"])
+    z = paste0(solname["dir"], sep, solname["degree"], sep, solname["type"])
+    print(z)
     sumInt = data.frame("timestamp" = xres, "solVar" = yres)
-    colnames(sumInt)[2] <- toString(var["panel"])
+    colnames(sumInt)[2] <- toString(paste0(solname["dir"], sep, solname["degree"], sep, solname["type"]))
     return(sumInt)
 }
 
