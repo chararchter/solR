@@ -6,7 +6,6 @@ library(tidyr)
 default = "F:\\Users\\Janis\\VIKA\\solR\\data\\mar\\"
 
 lstData = list.files(pattern="*.csv")
-
 data = read.csv("2019-03_whDays.csv", header = TRUE, sep = ",")
 data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d"))
 
@@ -15,6 +14,9 @@ export_pdf <- function(p, namePanel){
     ggsave(filename = paste0(month, "_", namePanel, ".pdf"), plot = p,
            height=9, width=16, units = "cm")
 }
+
+colPan = c("#00B788", "#036C9B", "#003554", "#03C133", "#00612E")
+names(colPan) <- c("D13", "D40", "D90", "A13", "R13")
 
 data.tidy <- data %>%
     gather(key, Wh, -timestamp) %>%
