@@ -56,6 +56,8 @@ pltMonth = function(solName){
 }
 
 # marts 31 2:00 ir datSol$timestamp[60755]
+# 60934
+
 ###########################
 # plots solar data
 ###########################
@@ -77,14 +79,21 @@ for (solName in solNames){
                     datTemp = pltMonth(solname)
                     # whMonth = sumMonth(datTemp, solname)
                     col_headings<-c(col_headings,solname)
-                    # sumMin = integrateIntervalH(datTemp$timestamp, datTemp$solVar, dminutes(5), "min", solname)
-                    sumHour = integrateIntervalH(datTemp$timestamp, datTemp$solVar, dhours(1), "hour", solname)
-                    sumDay = integrateIntervalH(date(datTemp$timestamp), date(datTemp$solVar), ddays(1), "day", solname)
+                    # sumMin = integrateIntervalH(datTemp$timestamp, datTemp$solVar, 
+                    #                             dminutes(5), "min", solname)
+                    sumMin1 = integrateIntervalH(datTemp$timestamp, datTemp$solVar,
+                                    dminutes(5), "min", solname, min(datTemp$timestamp), datSol$timestamp[60934])
+                    sumMin2 = integrateIntervalH(datTemp$timestamp, datTemp$solVar,
+                                                dminutes(5), "min", solname, datSol$timestamp[60935], max(datSol$timestamp))
+                    # sumHour = integrateIntervalH(datTemp$timestamp, datTemp$solVar, dhours(1), "hour", solname)
+                    # sumDay = integrateIntervalH(date(datTemp$timestamp), date(datTemp$solVar), ddays(1), "day", solname)
+                    
+                    sumMin = rbind(sumMin1, sumMin2)
                     if (i == 0){
-                    subSol = datTemp
-                    # sumMins = sumMin
-                    sumHours = sumHour
-                    sumDays = sumDay
+                    # subSol = datTemp
+                    sumMins = sumMin
+                    # sumHours = sumHour
+                    # sumDays = sumDay
 
                     # date_ym = paste0(year(datTemp$timestamp[1]), "-", format(datTemp$timestamp[1],"%m"))
                     # panel = paste0(solnameLst["dir"], solnameLst["degree"], solnameLst["type"])
@@ -92,10 +101,10 @@ for (solName in solNames){
                     # dfMonth = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
                     i = i + 1
                     } else{
-                        subSol = bind_cols(subSol, datTemp)
-                        # sumMins = bind_cols(sumMins, sumMin)
-                        sumHours = bind_cols(sumHours, sumHour)
-                        sumDays = bind_cols(sumDays, sumDay)
+                        # subSol = bind_cols(subSol, datTemp)
+                        sumMins = bind_cols(sumMins, sumMin)
+                        # sumHours = bind_cols(sumHours, sumHour)
+                        # sumDays = bind_cols(sumDays, sumDay)
                         # panel = paste0(solnameLst["dir"], solnameLst["degree"], solnameLst["type"])
                         # monthi = data.frame("ym"=date_ym,"panel"=panel,"Wh"=whMonth)
                         # dfMonth = bind_rows(dfMonth, monthi)
@@ -107,16 +116,16 @@ for (solName in solNames){
     }
 }
 # 
-ind <- seq(3, ncol(sumHours), by=2) # indices of columns to remove: every 3rd column starting from
-# sumMins = sumMins[, -ind]
-sumHours = sumHours[, -ind]
-sumDays = sumDays[, -ind]
-subSol = subSol[, -ind]
-names(subSol) <- unlist(col_headings)
+ind <- seq(3, ncol(sumMins), by=2) # indices of columns to remove: every 3rd column starting from
+sumMins = sumMins[, -ind]
+# sumHours = sumHours[, -ind]
+# sumDays = sumDays[, -ind]
+# subSol = subSol[, -ind]
+# names(subSol) <- unlist(col_headings)
 
 # cumulative integral
-# cumMins = cumsum(sumMins[,2:ncol(sumMins)])
-# cumMins = bind_cols(sumMins[1], cumMins)
+cumMins = cumsum(sumMins[,2:ncol(sumMins)])
+cumMins = bind_cols(sumMins[1], cumMins)
 # cumHours = cumsum(sumHours[,2:ncol(sumHours)])
 # cumHours = bind_cols(sumHours[1], cumHours)
 # cumDays = cumsum(sumDays[,2:ncol(sumDays)])
@@ -129,17 +138,18 @@ save_csv = function(what, name){
 
 # sumMonth = apply(sumDays[,-1], 2, function(x) sum(x))
 
-
-
 # save data frames to csv
 # save_csv(subSol, "subSol")
-# save_csv(sumMins, "whMins")
-save_csv(sumHours, "whHours")
-save_csv(sumDays, "whDays")
+save_csv(sumMins, "whMins")
+# save_csv(sumHours, "whHours")
+# save_csv(sumDays, "whDays")
 # save_csv(dfMonth, "whMonth")
-# save_csv(cumMins, "whCumMins")
+save_csv(cumMins, "whCumMins")
 # save_csv(cumHours, "whCumHours")
 # save_csv(cumDays, "whCumDays")
+
+
+
 
 
 # size adjustment coef for each type of panel
@@ -165,85 +175,7 @@ save_csv(sumDays, "whDays")
 # save_csv(sumDaysm2, "whm2Days")
 # save_csv(cumHoursm2, "whm2CumHours")
 # save_csv(cumDaysm2, "whm2CumDays")
-# # 
-# # ##############################
-# # # adjust dataframes to plotting
-# # ##############################
-# sumDays2 = data.frame("day"=sumDays$timestamp, "panel"=rep("D40JA", each=nrow(sumDays)), "Wh"=sumDays$D40JA)
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("D40LG", each=nrow(sumDays)), "Wh"=sumDays$D40LG))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("D13JA", each=nrow(sumDays)), "Wh"=sumDays$D13JA))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("D13LG", each=nrow(sumDays)), "Wh"=sumDays$D13LG))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("A13JA", each=nrow(sumDays)), "Wh"=sumDays$A13JA))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("A13LG", each=nrow(sumDays)), "Wh"=sumDays$A13LG))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("R13JA", each=nrow(sumDays)), "Wh"=sumDays$R13JA))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("R13LG", each=nrow(sumDays)), "Wh"=sumDays$R13LG))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("D90JA", each=nrow(sumDays)), "Wh"=sumDays$D90JA))
-# sumDays2 = rbind(sumDays2,data.frame("day"=sumDays$timestamp, "panel"=rep("D90LG", each=nrow(sumDays)), "Wh"=sumDays$D90LG))
-# as.factor(sumDays2$panel)
-# cumDays2 = data.frame("day"=cumDays$timestamp, "panel"=rep("D40JA", each=nrow(cumDays)), "Wh"=cumDays$D40JA)
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("D40LG", each=nrow(cumDays)), "Wh"=cumDays$D40LG))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("D13JA", each=nrow(cumDays)), "Wh"=cumDays$D13JA))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("D13LG", each=nrow(cumDays)), "Wh"=cumDays$D13LG))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("A13JA", each=nrow(cumDays)), "Wh"=cumDays$A13JA))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("A13LG", each=nrow(cumDays)), "Wh"=cumDays$A13LG))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("R13JA", each=nrow(cumDays)), "Wh"=cumDays$R13JA))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("R13LG", each=nrow(cumDays)), "Wh"=cumDays$R13LG))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("D90JA", each=nrow(cumDays)), "Wh"=cumDays$D90JA))
-# cumDays2 = rbind(cumDays2,data.frame("day"=cumDays$timestamp, "panel"=rep("D90LG", each=nrow(cumDays)), "Wh"=cumDays$D90LG))
-# as.factor(cumDays2$panel)
-# sumDaysJA = dplyr::filter(sumDays2, grepl('JA', panel))
-# sumDaysLG = dplyr::filter(sumDays2, grepl('LG', panel))
-# sumDaysJA$Wh = format(sumDaysJA$Wh / k_ja, digits = 2, nsmall=2)
-# sumDaysLG$Wh =  format(sumDaysLG$Wh / k_lg, digits = 2, nsmall=2)
-# sumDaysm2 = rbind(sumDaysJA, sumDaysLG)
-# cumDaysJA = dplyr::filter(cumDays2, grepl('JA', panel))
-# cumDaysLG = dplyr::filter(cumDays2, grepl('LG', panel))
-# cumDaysJA$Wh = format(cumDaysJA$Wh / k_ja, digits = 2, nsmall=2)
-# cumDaysLG$Wh = format(cumDaysLG$Wh / k_lg, digits = 2, nsmall=2)
-# cumDaysm2 = rbind(cumDaysJA, cumDaysLG)
-# 
-# save_csv(sumDays2, "whDaysT")
-# save_csv(cumDays2, "whCumDaysT")
-# save_csv(sumDaysm2, "whm2DaysT")
-# save_csv(cumDaysm2, "whm2CumDaysT")
-# 
-# sumHours2 = data.frame("day"=sumHours$timestamp, "panel"=rep("D40JA", each=nrow(sumHours)), "Wh"=sumHours$D40JA)
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("D40LG", each=nrow(sumHours)), "Wh"=sumHours$D40LG))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("D13JA", each=nrow(sumHours)), "Wh"=sumHours$D13JA))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("D13LG", each=nrow(sumHours)), "Wh"=sumHours$D13LG))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("A13JA", each=nrow(sumHours)), "Wh"=sumHours$A13JA))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("A13LG", each=nrow(sumHours)), "Wh"=sumHours$A13LG))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("R13JA", each=nrow(sumHours)), "Wh"=sumHours$R13JA))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("R13LG", each=nrow(sumHours)), "Wh"=sumHours$R13LG))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("D90JA", each=nrow(sumHours)), "Wh"=sumHours$D90JA))
-# sumHours2 = rbind(sumHours2,data.frame("day"=sumHours$timestamp, "panel"=rep("D90LG", each=nrow(sumHours)), "Wh"=sumHours$D90LG))
-# as.factor(sumHours2$panel)
-# cumHours2 = data.frame("day"=cumHours$timestamp, "panel"=rep("D40JA", each=nrow(cumHours)), "Wh"=cumHours$D40JA)
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("D40LG", each=nrow(cumHours)), "Wh"=cumHours$D40LG))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("D13JA", each=nrow(cumHours)), "Wh"=cumHours$D13JA))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("D13LG", each=nrow(cumHours)), "Wh"=cumHours$D13LG))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("A13JA", each=nrow(cumHours)), "Wh"=cumHours$A13JA))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("A13LG", each=nrow(cumHours)), "Wh"=cumHours$A13LG))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("R13JA", each=nrow(cumHours)), "Wh"=cumHours$R13JA))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("R13LG", each=nrow(cumHours)), "Wh"=cumHours$R13LG))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("D90JA", each=nrow(cumHours)), "Wh"=cumHours$D90JA))
-# cumHours2 = rbind(cumHours2,data.frame("day"=cumHours$timestamp, "panel"=rep("D90LG", each=nrow(cumHours)), "Wh"=cumHours$D90LG))
-# as.factor(cumHours2$panel)
-# sumHoursJA = dplyr::filter(sumHours2, grepl('JA', panel))
-# sumHoursLG = dplyr::filter(sumHours2, grepl('LG', panel))
-# sumHoursJA$Wh = format(sumHoursJA$Wh / k_ja, digits = 2, nsmall=2)
-# sumHoursLG$Wh = format(sumHoursLG$Wh / k_lg, digits = 2, nsmall=2)
-# sumHoursm2 = rbind(sumHoursJA, sumHoursLG)
-# cumHoursJA = dplyr::filter(cumHours2, grepl('JA', panel))
-# cumHoursLG = dplyr::filter(cumHours2, grepl('LG', panel))
-# cumHoursJA$Wh = format(cumHoursJA$Wh / k_ja, digits = 2, nsmall=2)
-# cumHoursLG$Wh = format(cumHoursLG$Wh / k_lg, digits = 2, nsmall=2)
-# cumHoursm2 = rbind(cumHoursJA, cumHoursLG)
-# 
-# save_csv(sumHours2, "whHoursT")
-# save_csv(cumHours2, "whCumHoursT")
-# save_csv(sumHoursm2, "whm2HoursT")
-# save_csv(cumHoursm2, "whm2CumHoursT")
+
 ##############################
 
 # setwd(paste(default, "code\\", sep=""))

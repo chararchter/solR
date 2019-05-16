@@ -75,12 +75,6 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
     intrBig = to - from # whole interval
     intrSmall = upperLimit - lowerLimit #small interval
     itrTimes = floor(as.numeric(intrBig) / as.numeric(intrSmall)) # how many small interval in big interval
-    # print(upperLimit)
-    # print(lowerLimit)
-    # print(intrBig)
-    # print(intrSmall)
-    # print("itrTimes")
-    # print(itrTimes)
     xres <- as_datetime(itrTimes)
     yres <- numeric(itrTimes)
     count = 0
@@ -101,15 +95,13 @@ integrateIntervalH = function(x, y, delta_t, timeUnit, solName, from = min(x, na
         upperLimit = upperLimit + delta_t
         i = i + 1
         # print(lowerLimit)
-        # print(indices[2])
+        if (indices[2]>60000){
+        print(indices[2])
+        print(upperLimit)
+        }
         # print(upperLimit)
         
-        # if (is.na(upperLimit)){
-        #     upperLimit = lowerLimit + hours(2)
-        # }
     }
-    
-    # z = toString(var["panel"])
     z = paste0(solname["dir"], sep, solname["degree"], sep, solname["type"])
     print(z)
     sumInt = data.frame("timestamp" = xres, "solVar" = yres)
