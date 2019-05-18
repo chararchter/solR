@@ -4,10 +4,12 @@ library(stringr)
 library(tidyr)
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\data\\mar\\"
+setwd(default)
 
 lstData = list.files(pattern="*.csv")
-data = read.csv("2019-03_whDays.csv", header = TRUE, sep = ",")
-data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d"))
+data = read.csv("2019-03_whMins.csv", header = TRUE, sep = ",")
+# data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d"))
+data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
 
 export_pdf <- function(p, namePanel){
     month = "mar"
@@ -15,8 +17,21 @@ export_pdf <- function(p, namePanel){
            height=9, width=16, units = "cm")
 }
 
-colPan = c("#00B788", "#036C9B", "#003554", "#03C133", "#00612E")
-names(colPan) <- c("D13", "D40", "D90", "A13", "R13")
+# colPan = c("#00B788", "#036C9B", "#003554", "#03C133", "#00612E")
+# names(colPan) <- c("D13", "D40", "D90", "A13", "R13")
+# colScale <- scale_colour_manual(values=colPan)
+# fillScale = scale_fill_manual(values=colPan)
+
+
+col13 = c("#00B788", "#03C133", "#00612E")
+names(col13) <- c("D", "A", "R")
+
+colD = c("#00B788", "#036C9B", "#003554")
+names(colD) <- c("13", "40", "90")
+
+scaleCol13 <- scale_colour_manual(name = "Dir", values=col13)
+scaleColD <- scale_colour_manual(name = "Degree", values=colD)
+
 
 data.tidy <- data %>%
     gather(key, Wh, -timestamp) %>%
@@ -75,16 +90,24 @@ tips = function(data, type){
 
 deg = function(data){
     d = ggplot(data, aes(x = timestamp, y = Wh/1000, col = Degree, shape = Type)) +
-        pnt + axTime + labDeg + shp + ggtitle("Direction: D")
+        pnt + axTime + labDeg + shp + ggtitle("Direction: D") + scaleColD
     d2 = d + facet_grid(Type ~ Degree)  + awoLegend
     export_pdf(d2, "Deg")
+    d = ggplot(data, aes(x = timestamp, y = Wh/1000, col = Degree, shape = Type)) +
+        geom_line() + axTime + labDeg + shp + ggtitle("Direction: D") + scaleColD
+    d2 = d + facet_grid(Type ~ Degree)  + awoLegend
+    export_pdf(d2, "Deg_l")
 }
 
 dir = function(data){
-p = ggplot(data, aes(x = timestamp, y = Wh/1000, col = Dir, shape = Type)) +
-    pnt + axTime + labDir + shp + ggtitle("Degree: 13")
-p2 = p + facet_grid(Type ~ Dir) + awoLegend
-export_pdf(p2, "Dir")
+    p = ggplot(data, aes(x = timestamp, y = Wh/1000, col = Dir, shape = Type)) +
+        pnt + axTime + labDir + shp + ggtitle("Degree: 13") + scaleCol13
+    p2 = p + facet_grid(Type ~ Dir) + awoLegend
+    export_pdf(p2, "Dir")
+    p = ggplot(data, aes(x = timestamp, y = Wh/1000, col = Dir, shape = Type)) +
+        geom_line() + axTime + labDir + shp + ggtitle("Degree: 13") + scaleCol13
+    p2 = p + facet_grid(Type ~ Dir) + awoLegend
+    export_pdf(p2, "Dir_l")
 }
 
 viss(data.tidy)
