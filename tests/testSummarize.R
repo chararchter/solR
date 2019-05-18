@@ -1,19 +1,7 @@
 library(ggplot2)
 library(lubridate)
 library(dplyr)
-
-timestamp <- seq.POSIXt(from=as.POSIXct("2019-01-01 00:00:00"), to=as.POSIXct("2019-01-01 23:00:00"), by= '15 min')
-solVar <- rnorm(length(timestamp))
-solVar = seq(from = 1, to = 100, length.out = length(timestamp))
-data <- data.frame(timestamp, solVar)
-
-# tab1 = data %>% group_by(timestamp=floor_date(timestamp, "6 hours")) %>%
-#   summarize(solVar=sum(solVar))
-# 
-# plt = data %>% group_by(timestamp=floor_date(timestamp, "6 hours")) %>%
-# summarize(solVar=sum(solVar)) %>%
-# ggplot(aes(x = timestamp, y = solVar)) + geom_point()
-
+library(tidyr)
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\data\\mar\\"
 setwd(default)
@@ -22,16 +10,30 @@ lstData = list.files(pattern="*.csv")
 data = read.csv("2019-03_whMins.csv", header = TRUE, sep = ",")
 data$timestamp = as.POSIXct(strptime(data$timestamp, format="%Y-%m-%d %H:%M:%S"))
 
-sum = function(delta){
-    # period = string describing period e.g. hour, day, week, month
-    delta = as.period(delta, unit = "hour")
-    data %>% group_by(timestamp=floor_date(timestamp, unit = delta)) %>%
-        summarise_if(is.numeric,funs(sum))
+sumHour = data.frame(data %>% group_by(timestamp=floor_date(timestamp, "hour")) %>%
+    summarise_if(is.numeric,funs(sum)))
+
+sumDay = data.frame(data %>% group_by(timestamp=floor_date(timestamp, "day")) %>%
+    summarise_if(is.numeric,funs(sum)))
+
+sumWeek = data.frame(data %>% group_by(timestamp=floor_date(timestamp, "7 days")) %>%
+    summarise_if(is.numeric,funs(sum)))
+
+sumMonth = data.frame(data %>% group_by(timestamp=floor_date(timestamp, "month")) %>%
+    summarise_if(is.numeric,funs(sum)))
+
+tidy = function(data){
+    return(data %>%
+    gather(key, Wh, -timestamp) %>%
+    separate(key, c("Dir", "Degree", "Type"), "\\."))
 }
 
-sum(hours("hour"))
-# sumHour = sum("hour")
-# sumHour = sum("hour")
-# sumDay = sum("day")
-# sumWeek = sum("7 days")
-# sumMonth = sum("month")
+sumMin.tidy = tidy(data)
+sumHour.tidy = tidy(sumHour)
+sumDay.tidy = tidy(sumDay)
+sumWeek.tidy = tidy(sumWeek)
+sumMonth.tidy = tidy(sumMonth)
+
+# calculate differences between two values
+diff = apply(sumHour[,-1], 2, function(x) diff(x))
+diff = cbind(sumHour[2:nrow(sumHour),1], diff)
