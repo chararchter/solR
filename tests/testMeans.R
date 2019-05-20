@@ -56,22 +56,24 @@ data.D = datMin.tidier %>% filter(Dir == "D")
 # d2 = d + facet_grid(Type ~ Degree)
 # export_pdf(d2, "test")
 
-test = scale_colour_gradient(low = "#132B43", high = "#56B1F7",
+testScale = scale_colour_gradient(low = "#132B43", high = "#56B1F7",
                       space = "Lab", na.value = "grey50", guide = "colourbar",
                       aesthetics = "colour")
 
 
 datMin.tidier$Date = as.numeric(datMin.tidier$Date)
+datMin.tidier$Degree = as.numeric(datMin.tidier$Degree)
 write.csv(datMin.tidier, file = "killme.csv", row.names=FALSE)
 
 # geom_line(data=data.frame(spline(data.test, n=500)))
 
-
-data.test = datMin.tidier %>% filter(Dir == "D" & Degree == "13" & Type == "JA" & Date < 3)
+data.test = datMin.tidier %>% filter(Dir == "D" & Degree == 40 & Type == "JA" & Date < 3)
+data.test <- transform(data.test,Date=factor(Date,levels=unique(Date)))
+write.csv(data.test, file = "killme666.csv", row.names=FALSE)
 data.spline = data.frame(fakeTime = data.test$fakeTime, Wh = data.test$Wh)
 
-d = ggplot(data.test, aes(x = fakeTime, y = Wh, col = Date)) + test +
-    geom_point(alpha = 0.5) + axTime +
-    geom_line(data=data.frame(spline(data.spline, n=300)))
+d = ggplot(data.test, aes(x = fakeTime, y = Wh, col = Date)) +
+    geom_line(alpha = 0.5)
+    # geom_line(data=data.frame(spline(data.spline, n=300)))
 # d2 = d + facet_grid(Type ~ Degree)
 export_pdf(d, "test1")
