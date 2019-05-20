@@ -56,9 +56,10 @@ data.D = datMin.tidier %>% filter(Dir == "D")
 # d2 = d + facet_grid(Type ~ Degree)
 # export_pdf(d2, "test")
 
-testScale = scale_colour_gradient(low = "#132B43", high = "#56B1F7",
-                      space = "Lab", na.value = "grey50", guide = "colourbar",
-                      aesthetics = "colour")
+# testScale = scale_color_manual(values=["blue", "purple", "orange"])
+#    scale_colour_gradient(low = "#132B43", high = "#56B1F7",
+#                      space = "Lab", na.value = "grey50", guide = "colourbar",
+#                      aesthetics = "colour")
 
 
 datMin.tidier$Date = as.numeric(datMin.tidier$Date)
@@ -73,7 +74,7 @@ write.csv(data.test, file = "killme666.csv", row.names=FALSE)
 data.spline = data.frame(fakeTime = data.test$fakeTime, Wh = data.test$Wh)
 
 d = ggplot(data.test, aes(x = fakeTime, y = Wh, col = Date)) +
-    geom_line(alpha = 0.5)
+    geom_line(alpha = 0.5) + scale_color_manual(values=c("blue", "purple"))
     # geom_line(data=data.frame(spline(data.spline, n=300)))
 # d2 = d + facet_grid(Type ~ Degree)
 export_pdf(d, "test1")
