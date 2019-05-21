@@ -2,6 +2,7 @@ library(ggplot2)
 library(lubridate)
 library(dplyr)
 library(tidyr)
+library(pracma)
 
 # change font to serif so it can display latvian language correctly
 theme_set(theme_classic())
@@ -127,8 +128,16 @@ mean2 = cbind(mean2, Date = rep(20, nrow(mean2)))
 mean3 = cbind(mean3, Date = rep(30, nrow(mean3)))
 mean = rbind(mean1, mean2, mean3)
 
-mean1 = data.test %>% filter(Date < 6) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean1 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
 mean2 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+
+mean1 = cbind(mean1, Date = rep(7, nrow(mean1)))
+mean2 = cbind(mean2, Date = rep(22, nrow(mean2)))
+
+mean = rbind(mean1, mean2)
+
+mean1 = data.test %>% filter(Date < 5 & Date > 0) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean2 = data.test %>% filter(Date < 30 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
 
 mean1 = cbind(mean1, Date = rep(7, nrow(mean1)))
 mean2 = cbind(mean2, Date = rep(22, nrow(mean2)))
@@ -138,17 +147,8 @@ mean = rbind(mean1, mean2)
 mean$Wh = round(mean$Wh, digits = 2)
 
 
-med1 = data.test %>% filter(Date < 6) %>% group_by(fakeTime) %>% summarize(Wh = median(Wh))
-med2 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = median(Wh))
-
-med1 = cbind(med1, Date = rep(7, nrow(mean1)))
-med2 = cbind(med2, Date = rep(22, nrow(mean2)))
-
-med = rbind(med1, med2)
-
-med$Wh = round(med$Wh, digits = 2)
-
-data.test = data.test %>% filter(Date %% 5 == 0)
+# data.test = data.test %>% filter(Date %% 5 == 0)
+data.test = data.test %>% filter(Date < 10 & Date > 4)
 
 mycol = "#036C9B"
 
@@ -165,14 +165,33 @@ scTest  = scale_colour_gradient(low = findGradient(mycol, "b")[1], high = findGr
 # export_pdf(d, "testlab2")
 # d0 = geom_line(data = mean, aes(x = fakeTime, y = Wh))
 
+spl1 = smooth.spline(1:length(mean1$fakeTime), mean1$Wh,spar = 0.5, tol = 1e-2, nknots = floor(0.45*length(mean1$fakeTime)))
+spl = data.frame(fakeTime = mean1$fakeTime, Wh = spl1$data$y)
+spl = cbind(spl, Date = rep(22, nrow(spl)))
+
+pp = cubicspline(1:length(mean$fakeTime), mean$Wh)
+ppfun = function(xs) ppval(pp, xs)
+
 dmean = geom_line(data = mean, aes(x = fakeTime, y = Wh)) 
-dmed = geom_line(data = med, aes(x = fakeTime, y = Wh)) 
+dspl = geom_line(data = spl, aes(x = fakeTime, y = Wh), col = "red")
 d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) +
     geom_line(aes(col = Date), alpha = 0.5) +
     scTest + labs(x = "t, h", col = "Datums", title = "D.40.JA", caption = date) 
-# d = d + dmean
-d = d + dmed
-export_pdf(d, "testMed")
+d = d + dmean
+d = d + dspl
+export_pdf(d, "testMeanS")
+
+
+spl1 = smooth.spline(1:length(mean1$fakeTime), mean1$Wh,spar = 0.5, tol = 1e-2, nknots = floor(0.45*length(mean1$fakeTime)))
+spl = data.frame(fakeTime = mean1$fakeTime, Wh = spl1$data$y)
+spl = cbind(spl, Date = rep(22, nrow(spl)))
+
+d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) +
+    geom_line(aes(col = Date), alpha = 0.5) +
+    scTest + labs(x = "t, h", col = "Datums", title = "D.40.JA", caption = date) 
+d = d + dmean
+d = d + dspl
+export_pdf(d, "testMeanS")
 
 
 
