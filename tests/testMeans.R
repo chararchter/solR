@@ -3,6 +3,11 @@ library(lubridate)
 library(dplyr)
 library(tidyr)
 
+# change font to serif so it can display latvian language correctly
+theme_map <- theme_get()
+theme_map$text$family = "serif"
+theme_map$text$size = 12
+
 default = "F:\\Users\\Janis\\VIKA\\solR\\data\\mar\\"
 setwd(default)
 
@@ -59,8 +64,10 @@ datMin.tidier$Degree = as.numeric(datMin.tidier$Degree)
 write.csv(datMin.tidier, file = "killme.csv", row.names=FALSE)
 
 data.test = datMin.tidier %>% filter(Dir == "D" & Degree == 40 & Type == "JA" )
-data.test = data.test %>% filter(Date %% 5 == 0)
+data.test = data.test %>% filter(Date %% 2 == 0)
 
 d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) + geom_line(aes(col = Date)) +
-scale_colour_gradient2()
-export_pdf(d, "test6")
+    scale_colour_gradient2() + labs(x = "t, h", col = "Šaursliežu dzelzceļš") +
+    # theme_classic() +
+    theme_map 
+export_pdf(d, "test5")
