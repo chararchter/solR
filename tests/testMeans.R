@@ -4,9 +4,13 @@ library(dplyr)
 library(tidyr)
 
 # change font to serif so it can display latvian language correctly
+theme_set(theme_classic())
 theme_map <- theme_get()
 theme_map$text$family = "serif"
 theme_map$text$size = 12
+theme_map$plot.caption$family = "serif"
+theme_map$plot.caption$size = 10
+theme_map$plot.caption$colour = "gray30"
 
 default = "F:\\Users\\Janis\\VIKA\\solR\\data\\mar\\"
 setwd(default)
@@ -23,8 +27,31 @@ tidy = function(data){
                separate(key, c("Dir", "Degree", "Type"), "\\."))
 }
 
+findGradient = function(mycol, col){
+    # col = b for blue, t for turquoise, else green
+    if (col == "b"){
+        dumpCol = "#012b6c"
+    } else if (col == "t"){
+        dumpCol = "#005a43"
+    }
+    else{
+        dumpCol = "#034c25"
+    }
+    colfunc <- colorRampPalette(c(dumpCol, mycol), space = "Lab")
+    hgh = colfunc(10)[5]
+    colfunc <- colorRampPalette(c("white", hgh), space = "Lab")
+    ncolor = 30
+    low = colfunc(ncolor)[3]
+    return(c(low, hgh))
+}
+
 datMin = read.csv("2019-03_whMins_atstarpes.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
 datMin$timestamp = as.POSIXct(datMin$timestamp)
+
+datMin = data.frame(datMin %>% group_by(timestamp=floor_date(timestamp, "10 minutes")) %>%
+                         summarise_if(is.numeric,funs(sum)))
+
+
 datMin.tidy = tidy(datMin)
 datMin.tidy = datMin.tidy  %>% separate(timestamp, c("date", "time"), sep=" ")
 
@@ -37,7 +64,6 @@ datMin.tidier <- datMin.tidy %>%
 
 datMin.tidier$fakeTime <- as.POSIXct(paste(dummyDate, datMin.tidy$time))
 
-print(head(datMin.tidier))
 datMin.tidier = datMin.tidier[-1]
 
 col13 = c("#00B788", "#03C133", "#00612E")
@@ -48,7 +74,6 @@ axTime = scale_x_datetime(date_labels = "%H:%M", date_breaks = "5 hours")
 labDeg2 = labs(x = "t, h", y = "E, Wh", shape = "Tips", col = "Lenkis")
 labDir2 = labs(x = "t, h", y = "E, Wh", shape = "Tips", col = "Virziens")
 shp = scale_shape_manual(values=c(1, 2))
-# scale_colour_gradient(colours = terrain.colors(10))
 
 
 data.13 = datMin.tidier %>% filter(Degree == "13")
@@ -61,13 +86,122 @@ data.D = datMin.tidier %>% filter(Dir == "D")
 
 datMin.tidier$Date = as.numeric(datMin.tidier$Date)
 datMin.tidier$Degree = as.numeric(datMin.tidier$Degree)
-write.csv(datMin.tidier, file = "killme.csv", row.names=FALSE)
 
 data.test = datMin.tidier %>% filter(Dir == "D" & Degree == 40 & Type == "JA" )
-data.test = data.test %>% filter(Date %% 2 == 0)
+# data.test = data.test %>% filter(Date < 3)
+# data.test = data.test %>% filter(Date %% 2 == 0)
 
-d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) + geom_line(aes(col = Date)) +
-    scale_colour_gradient2() + labs(x = "t, h", col = "Šaursliežu dzelzceļš") +
-    # theme_classic() +
-    theme_map 
-export_pdf(d, "test5")
+month = month(data.test$fakeTime[1], label = TRUE, abbr = TRUE, locale = "Latvian")
+month = paste0(toupper(substring(month, 1, 1)), substring(month, 2)) # start with uppercase letter
+date = paste0(month, ", ", year(data.test$fakeTime[1]))
+
+# summarizes wh in each day
+group_by(data.test, as.numeric(Date)) %>% summarize(m = mean(Wh))
+# summarizes wh over all days
+mean = as.data.frame(group_by(data.test, fakeTime) %>% summarize(Wh = mean(Wh)))
+
+
+mean1 = data.test %>% filter(Date < 6) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean2 = data.test %>% filter(Date < 11 & Date > 5) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean3 = data.test %>% filter(Date < 16 & Date > 10) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean4 = data.test %>% filter(Date < 21 & Date > 15) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean5 = data.test %>% filter(Date < 26 & Date > 20) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean6 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+
+mean1 = cbind(mean1, Date = rep(1, nrow(mean1)))
+mean2 = cbind(mean2, Date = rep(5, nrow(mean2)))
+mean3 = cbind(mean3, Date = rep(10, nrow(mean3)))
+mean4 = cbind(mean4, Date = rep(15, nrow(mean4)))
+mean5 = cbind(mean5, Date = rep(20, nrow(mean5)))
+mean6 = cbind(mean6, Date = rep(25, nrow(mean6)))
+
+mean = rbind(mean1, mean2, mean3, mean4, mean5, mean6)
+
+
+mean1 = data.test %>% filter(Date < 11) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean2 = data.test %>% filter(Date < 21 & Date > 10) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean3 = data.test %>% filter(Date < 31 & Date > 20) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+
+mean1 = cbind(mean1, Date = rep(10, nrow(mean1)))
+mean2 = cbind(mean2, Date = rep(20, nrow(mean2)))
+mean3 = cbind(mean3, Date = rep(30, nrow(mean3)))
+mean = rbind(mean1, mean2, mean3)
+
+mean1 = data.test %>% filter(Date < 6) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+mean2 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = mean(Wh))
+
+mean1 = cbind(mean1, Date = rep(7, nrow(mean1)))
+mean2 = cbind(mean2, Date = rep(22, nrow(mean2)))
+
+mean = rbind(mean1, mean2)
+
+mean$Wh = round(mean$Wh, digits = 2)
+
+
+med1 = data.test %>% filter(Date < 6) %>% group_by(fakeTime) %>% summarize(Wh = median(Wh))
+med2 = data.test %>% filter(Date < 31 & Date > 25) %>% group_by(fakeTime) %>% summarize(Wh = median(Wh))
+
+med1 = cbind(med1, Date = rep(7, nrow(mean1)))
+med2 = cbind(med2, Date = rep(22, nrow(mean2)))
+
+med = rbind(med1, med2)
+
+med$Wh = round(med$Wh, digits = 2)
+
+data.test = data.test %>% filter(Date %% 5 == 0)
+
+mycol = "#036C9B"
+
+scTest  = scale_colour_gradient(low = findGradient(mycol, "b")[1], high = findGradient(mycol, "b")[2],
+                      space = "Lab", na.value = "grey50", guide = "colourbar",
+                      aesthetics = "colour")
+
+# d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) +
+#     geom_line(aes(col = Date)) +
+#     geom_line(data = mean, aes(x = time, y = Wh)) +
+#     scTest +
+#     labs(x = "t, h", col = "Datums", title = "D.40.JA", caption = date) + 
+#     theme_map 
+# export_pdf(d, "testlab2")
+# d0 = geom_line(data = mean, aes(x = fakeTime, y = Wh))
+
+dmean = geom_line(data = mean, aes(x = fakeTime, y = Wh)) 
+dmed = geom_line(data = med, aes(x = fakeTime, y = Wh)) 
+d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) +
+    geom_line(aes(col = Date), alpha = 0.5) +
+    scTest + labs(x = "t, h", col = "Datums", title = "D.40.JA", caption = date) 
+# d = d + dmean
+d = d + dmed
+export_pdf(d, "testMed")
+
+
+
+# directions = c('D')
+# degrees = c(13, 40, 90)
+# types = c('JA','LG')
+# 
+# sep = "."
+# i = 0
+# for (dir in directions){
+#     for (degree in degrees){
+#         for (type in types){
+#             data.test = datMin.tidier %>% filter(Dir == dir & Degree == degree & Type == type )
+#             data.test = data.test %>% filter(Date %% 2 == 0)
+#             
+#             mycol = colD[toString(degree)]
+#             
+#             scTest  = scale_colour_gradient(low = findGradient(mycol, "b")[1], high = findGradient(mycol, "b")[2],
+#                                             space = "Lab", na.value = "grey50", guide = "colourbar",
+#                                             aesthetics = "colour")
+#             
+#             d = ggplot(data.test, aes(x = fakeTime, y = Wh, group = as.numeric(Date))) +
+#                 geom_line(aes(col = Date)) +
+#                 scTest +
+#                 labs(x = "t, h", col = "Datums", title = paste0(dir, sep, degree, sep, type), caption = date) + 
+#                 theme_map 
+#             export_pdf(d, paste0(dir, degree, type))
+#             
+#         }
+#     }
+#     }
+
